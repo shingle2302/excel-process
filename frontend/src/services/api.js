@@ -1,37 +1,39 @@
 import axios from 'axios'
+import { clearAuth } from '../utils/auth.js'
 
 const api = axios.create({
   baseURL: '/api',
   timeout: 10000
 })
 
-// 请求拦截器
 api.interceptors.request.use(
   config => {
-    // 从localStorage获取API Key
-    const apiKey = localStorage.getItem('apiKey') || 'test-client'
+    const apiKey = localStorage.getItem('apiKey')
     if (apiKey) {
       config.headers['X-API-Key'] = apiKey
     }
     return config
   },
-  error => {
-    return Promise.reject(error)
-  }
+  error => Promise.reject(error)
 )
 
-// 响应拦截器
 api.interceptors.response.use(
-  response => {
-    return response.data
-  },
+  response => response.data,
   error => {
+    const status = error?.response?.status
+    if (status === 401 && typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+      clearAuth()
+      window.location.href = '/login'
+    }
     console.error('API请求错误:', error)
     return Promise.reject(error)
   }
 )
 
-// 任务相关API
+export const authApi = {
+  login: (payload) => api.post('/auth/login', payload)
+}
+
 export const taskApi = {
   create: (task) => api.post('/tasks', task),
   list: (status) => api.get('/tasks', { params: { status } }),
@@ -41,7 +43,6 @@ export const taskApi = {
   delete: (id) => api.delete(`/tasks/${id}`)
 }
 
-// 任务定义相关API
 export const taskDefinitionApi = {
   create: (taskDefinition) => api.post('/task-definitions', taskDefinition),
   list: () => api.get('/task-definitions'),
@@ -52,7 +53,6 @@ export const taskDefinitionApi = {
   getByClientId: (clientId) => api.get(`/task-definitions/client/${clientId}`)
 }
 
-// 客户端相关API
 export const clientApi = {
   create: (client) => api.post('/clients', client),
   list: () => api.get('/clients'),
@@ -63,7 +63,6 @@ export const clientApi = {
   updateStatus: (clientId, status) => api.put(`/clients/client-id/${clientId}/status`, null, { params: { status } })
 }
 
-// 数据列定义相关API
 export const columnDefinitionApi = {
   create: (columnDefinition) => api.post('/column-definitions', columnDefinition),
   list: () => api.get('/column-definitions'),
@@ -74,7 +73,6 @@ export const columnDefinitionApi = {
   deleteByTaskDefinitionId: (taskDefinitionId) => api.delete(`/column-definitions/task-definition/${taskDefinitionId}`)
 }
 
-// Excel处理相关API
 export const excelApi = {
   import: (formData) => api.post('/excel/import', formData, {
     headers: {

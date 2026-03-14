@@ -121,4 +121,18 @@ class ClientServiceImplTest {
         // 验证结果
         verify(clientMapper, times(1)).update(any(Client.class), any());
     }
+    @Test
+    void testIsActiveClient() {
+        Client client = new Client();
+        client.setClientId("admin");
+        client.setStatus("启用");
+
+        when(clientMapper.selectOne(any())).thenReturn(client);
+
+        boolean result = clientService.isActiveClient("admin");
+
+        assertTrue(result);
+        verify(clientMapper, times(1)).selectOne(any());
+    }
+
 }

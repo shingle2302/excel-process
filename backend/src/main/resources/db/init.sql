@@ -79,7 +79,8 @@ CREATE TABLE IF NOT EXISTS operation_log (
 
 -- 插入测试数据
 INSERT INTO client (client_id, client_secret, client_name, client_desc, status) VALUES
-('test-client', 'test-secret', '测试客户端', '用于测试的客户端', '启用');
+('test-client', 'test-secret', '测试客户端', '用于测试的客户端', '启用'),
+('admin', 'admin123', '系统管理员', '系统默认管理员账号', '启用');
 
 INSERT INTO task_definition (name, description, type, client_id, params, callback_url, callback_method) VALUES
 ('export-users', '导出用户数据', '导出', 1, '{"batch": true, "batchSize": 10000, "format": "excel", "pageSize": 10000}', 'http://localhost:8080/callback', 'POST'),
@@ -175,7 +176,8 @@ CREATE TABLE IF NOT EXISTS operation_log (
 
 -- 插入测试数据
 INSERT INTO client (client_id, client_secret, client_name, client_desc, status) VALUES
-('test-client', 'test-secret', '测试客户端', '用于测试的客户端', '启用');
+('test-client', 'test-secret', '测试客户端', '用于测试的客户端', '启用'),
+('admin', 'admin123', '系统管理员', '系统默认管理员账号', '启用');
 
 INSERT INTO task_definition (name, description, type, client_id, params, callback_url, callback_method) VALUES
 ('export-users', '导出用户数据', '导出', 1, '{"batch": true, "batchSize": 10000, "format": "excel", "pageSize": 10000}', 'http://localhost:8080/callback', 'POST'),

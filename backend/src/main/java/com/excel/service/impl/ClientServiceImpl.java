@@ -32,6 +32,12 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
     }
 
     @Override
+    public boolean isActiveClient(String clientId) {
+        Optional<Client> clientOptional = getByClientId(clientId);
+        return clientOptional.filter(client -> "启用".equals(client.getStatus())).isPresent();
+    }
+
+    @Override
     public Client createClient(Client client) {
         client.setStatus("启用");
         client.setCreateTime(LocalDateTime.now());
