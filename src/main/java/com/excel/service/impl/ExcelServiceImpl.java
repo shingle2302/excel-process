@@ -3,6 +3,7 @@ package com.excel.service.impl;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
+import com.alibaba.excel.metadata.data.ReadCellData;
 import com.excel.service.ExcelService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,6 +56,7 @@ public class ExcelServiceImpl implements ExcelService {
     @Override
     public List<Map<String, Object>> parseExcel(InputStream inputStream, List<Map<String, Object>> columnDefinitions) throws IOException {
         List<Map<String, Object>> dataList = new ArrayList<>();
+        final Map<Integer, String>[] headerMapHolder = new Map[1];
 
         // 构建字段映射
         Map<Integer, String> indexToFieldMap = new HashMap<>();
@@ -62,15 +64,47 @@ public class ExcelServiceImpl implements ExcelService {
             indexToFieldMap.put(i, (String) columnDefinitions.get(i).get("fieldName"));
         }
 
-        // 解析Excel
-        EasyExcel.read(inputStream, new AnalysisEventListener<List<Object>>() {
+        // 构建列名到字段名的映射
+        Map<String, String> columnNameToFieldMap = new HashMap<>();
+        for (Map<String, Object> column : columnDefinitions) {
+            columnNameToFieldMap.put((String) column.get("columnName"), (String) column.get("fieldName"));
+        }
+
+        // 解析Excel/CSV
+        EasyExcel.read(inputStream, new AnalysisEventListener<Map<Integer, String>>() {
             @Override
-            public void invoke(List<Object> row, AnalysisContext context) {
+            public void invokeHead(Map<Integer, ReadCellData<?>> headMap, AnalysisContext context) {
+                // 保存表头信息
+                Map<Integer, String> stringHeadMap = new HashMap<>();
+                for (Map.Entry<Integer, ReadCellData<?>> entry : headMap.entrySet()) {
+                    stringHeadMap.put(entry.getKey(), entry.getValue().getStringValue());
+                }
+                headerMapHolder[0] = stringHeadMap;
+            }
+
+            @Override
+            public void invoke(Map<Integer, String> row, AnalysisContext context) {
                 Map<String, Object> rowData = new HashMap<>();
-                for (int i = 0; i < row.size(); i++) {
-                    String fieldName = indexToFieldMap.get(i);
-                    if (fieldName != null) {
-                        rowData.put(fieldName, row.get(i));
+                Map<Integer, String> headerMap = headerMapHolder[0];
+                if (headerMap != null) {
+                    // 使用表头映射
+                    for (Map.Entry<Integer, String> entry : row.entrySet()) {
+                        Integer index = entry.getKey();
+                        String columnName = headerMap.get(index);
+                        if (columnName != null) {
+                            String fieldName = columnNameToFieldMap.get(columnName);
+                            if (fieldName != null) {
+                                rowData.put(fieldName, entry.getValue());
+                            }
+                        }
+                    }
+                } else {
+                    // 使用索引映射
+                    for (Map.Entry<Integer, String> entry : row.entrySet()) {
+                        String fieldName = indexToFieldMap.get(entry.getKey());
+                        if (fieldName != null) {
+                            rowData.put(fieldName, entry.getValue());
+                        }
                     }
                 }
                 dataList.add(rowData);
