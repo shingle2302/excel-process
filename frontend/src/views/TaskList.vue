@@ -3,18 +3,34 @@
     <el-card shadow="hover">
       <template #header>
         <div class="card-header">
-          <span>任务管理</span>
-          <el-button type="primary" @click="createTask">
-            <el-icon><Plus /></el-icon>
-            新建任务
-          </el-button>
+          <div>
+            <span class="title">任务管理</span>
+            <p class="subtitle">支持按状态/类型/关键词筛选，提升任务排查效率。</p>
+          </div>
+          <div class="header-actions">
+            <el-button @click="loadTasks">刷新</el-button>
+            <el-button type="primary" @click="createTask">
+              <el-icon><Plus /></el-icon>
+              新建任务
+            </el-button>
+          </div>
         </div>
       </template>
+
+      <div class="summary-grid">
+        <div v-for="item in summaryCards" :key="item.label" class="summary-item">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+        </div>
+      </div>
+
       <div class="task-filter">
         <el-form :inline="true" :model="filterForm">
+          <el-form-item label="关键词">
+            <el-input v-model="filterForm.keyword" placeholder="任务名称/描述" clearable />
+          </el-form-item>
           <el-form-item label="状态">
-            <el-select v-model="filterForm.status" placeholder="全部">
-              <el-option label="全部" value="" />
+            <el-select v-model="filterForm.status" placeholder="全部" clearable>
               <el-option label="待处理" value="待处理" />
               <el-option label="处理中" value="处理中" />
               <el-option label="已完成" value="已完成" />
@@ -24,83 +40,67 @@
             </el-select>
           </el-form-item>
           <el-form-item label="类型">
-            <el-select v-model="filterForm.type" placeholder="全部">
-              <el-option label="全部" value="" />
+            <el-select v-model="filterForm.type" placeholder="全部" clearable>
               <el-option label="导入" value="导入" />
               <el-option label="导出" value="导出" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="loadTasks">
-              搜索
-            </el-button>
-            <el-button @click="resetFilter">
-              重置
-            </el-button>
+            <el-button type="primary" @click="applyFilter">搜索</el-button>
+            <el-button @click="resetFilter">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
-      <el-table :data="tasks" style="width: 100%">
-        <el-table-column prop="id" label="任务ID" width="100" />
-        <el-table-column prop="name" label="任务名称" />
+
+      <el-table :data="pagedTasks" style="width: 100%" empty-text="暂无符合条件的任务">
+        <el-table-column prop="id" label="任务ID" width="90" />
+        <el-table-column prop="name" label="任务名称" min-width="180" />
         <el-table-column prop="type" label="任务类型" width="100" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" label="状态" width="110">
           <template #default="scope">
-            <el-tag
-              :type="scope && scope.row ? getStatusType(scope.row.status) : 'info'"
-              effect="dark"
-            >
+            <el-tag :type="getStatusType(scope && scope.row ? scope.row.status : '')" effect="dark">
               {{ scope && scope.row ? scope.row.status : '' }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="progress" label="进度" width="150">
           <template #default="scope">
-            <el-progress :percentage="scope && scope.row ? scope.row.progress : 0" :stroke-width="10" />
+            <el-progress :percentage="scope && scope.row ? (scope.row.progress || 0) : 0" :stroke-width="10" />
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column prop="updateTime" label="更新时间" width="180" />
-        <el-table-column label="操作" width="200">
+        <el-table-column prop="createTime" label="创建时间" min-width="170" />
+        <el-table-column prop="updateTime" label="更新时间" min-width="170" />
+        <el-table-column label="操作" width="230" fixed="right">
           <template #default="scope">
-            <el-button size="small" type="primary" @click="viewTask(scope.row.id)" v-if="scope && scope.row">
-              查看
-            </el-button>
+            <el-button size="small" type="primary" @click="scope && scope.row && viewTask(scope.row.id)">查看</el-button>
             <el-button
               size="small"
               type="warning"
-              @click="updateTaskStatus(scope.row.id, '暂停')"
+              @click="scope && scope.row && updateTaskStatus(scope.row.id, '暂停')"
               v-if="scope && scope.row && scope.row.status === '处理中'"
-            >
-              暂停
-            </el-button>
+            >暂停</el-button>
             <el-button
               size="small"
               type="danger"
-              @click="updateTaskStatus(scope.row.id, '取消')"
+              @click="scope && scope.row && updateTaskStatus(scope.row.id, '取消')"
               v-if="scope && scope.row && (scope.row.status === '待处理' || scope.row.status === '暂停')"
-            >
-              取消
-            </el-button>
-            <el-button 
-              size="small" 
-              type="success" 
-              @click="updateTaskStatus(scope.row.id, '待处理')"
+            >取消</el-button>
+            <el-button
+              size="small"
+              type="success"
+              @click="scope && scope.row && updateTaskStatus(scope.row.id, '待处理')"
               v-if="scope && scope.row && scope.row.status === '失败'"
-            >
-              重试
-            </el-button>
-            <el-button 
-              size="small" 
-              type="danger" 
-              @click="deleteTask(scope.row.id)"
+            >重试</el-button>
+            <el-button
+              size="small"
+              type="danger"
+              @click="scope && scope.row && deleteTask(scope.row.id)"
               v-if="scope && scope.row && scope.row.status === '已完成'"
-            >
-              删除
-            </el-button>
+            >删除</el-button>
           </template>
         </el-table-column>
       </el-table>
+
       <div class="pagination">
         <el-pagination
           v-model:current-page="currentPage"
@@ -113,33 +113,16 @@
         />
       </div>
     </el-card>
-    
-    <!-- 新建任务对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      title="新建任务"
-      width="500px"
-    >
+
+    <el-dialog v-model="dialogVisible" title="新建任务" width="500px">
       <el-form :model="taskForm" label-width="120px">
-        <el-form-item label="任务名称">
-          <el-input v-model="taskForm.name" placeholder="请输入任务名称" />
-        </el-form-item>
+        <el-form-item label="任务名称"><el-input v-model="taskForm.name" placeholder="请输入任务名称" /></el-form-item>
         <el-form-item label="任务描述">
-          <el-input
-            v-model="taskForm.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入任务描述"
-          />
+          <el-input v-model="taskForm.description" type="textarea" :rows="3" placeholder="请输入任务描述" />
         </el-form-item>
         <el-form-item label="任务定义">
           <el-select v-model="taskForm.taskDefinitionId" placeholder="请选择任务定义">
-            <el-option
-              v-for="taskDef in taskDefinitions"
-              :key="taskDef.id"
-              :label="taskDef.name"
-              :value="taskDef.id"
-            />
+            <el-option v-for="taskDef in taskDefinitions" :key="taskDef.id" :label="taskDef.name" :value="taskDef.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="任务类型">
@@ -172,17 +155,9 @@ const taskDefinitions = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
-const filterForm = ref({
-  status: '',
-  type: ''
-})
+const filterForm = ref({ keyword: '', status: '', type: '' })
 const dialogVisible = ref(false)
-const taskForm = ref({
-  name: '',
-  description: '',
-  taskDefinitionId: null,
-  type: '导入'
-})
+const taskForm = ref({ name: '', description: '', taskDefinitionId: null, type: '导入' })
 
 const getStatusType = (status) => {
   const statusMap = {
@@ -196,20 +171,59 @@ const getStatusType = (status) => {
   return statusMap[status] || 'info'
 }
 
+const filteredTasks = computed(() => {
+  const keyword = filterForm.value.keyword?.trim().toLowerCase()
+  return tasks.value.filter((task) => {
+    const statusMatch = !filterForm.value.status || task.status === filterForm.value.status
+    const typeMatch = !filterForm.value.type || task.type === filterForm.value.type
+    const keywordMatch = !keyword || [task.name, task.description]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .includes(keyword)
+    return statusMatch && typeMatch && keywordMatch
+  })
+})
+
+const pagedTasks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredTasks.value.slice(start, end)
+})
+
+const summaryCards = computed(() => {
+  const totalCount = tasks.value.length
+  return [
+    { label: '总任务', value: totalCount },
+    { label: '进行中', value: tasks.value.filter(item => item.status === '处理中').length },
+    { label: '失败任务', value: tasks.value.filter(item => item.status === '失败').length },
+    { label: '完成率', value: totalCount ? `${Math.round((tasks.value.filter(item => item.status === '已完成').length / totalCount) * 100)}%` : '0%' }
+  ]
+})
+
+const syncTotal = () => {
+  total.value = filteredTasks.value.length
+}
+
 const loadTasks = async () => {
   try {
-    const result = await taskApi.list(filterForm.value.status)
+    const result = await taskApi.list()
     tasks.value = result
-    total.value = result.length
+    currentPage.value = 1
+    syncTotal()
   } catch (error) {
     console.error('加载任务列表失败:', error)
   }
 }
 
+const applyFilter = () => {
+  currentPage.value = 1
+  syncTotal()
+}
+
 const loadTaskDefinitions = async () => {
   try {
-    const result = await taskDefinitionApi.list()
-    taskDefinitions.value = result
+    taskDefinitions.value = await taskDefinitionApi.list()
   } catch (error) {
     console.error('加载任务定义失败:', error)
   }
@@ -223,7 +237,7 @@ const updateTaskStatus = async (taskId, status) => {
   try {
     await taskApi.updateStatus(taskId, status)
     ElMessage.success('状态更新成功')
-    loadTasks()
+    await loadTasks()
   } catch (error) {
     console.error('更新状态失败:', error)
     ElMessage.error('更新状态失败')
@@ -234,7 +248,7 @@ const deleteTask = async (taskId) => {
   try {
     await taskApi.delete(taskId)
     ElMessage.success('删除成功')
-    loadTasks()
+    await loadTasks()
   } catch (error) {
     console.error('删除失败:', error)
     ElMessage.error('删除失败')
@@ -242,12 +256,7 @@ const deleteTask = async (taskId) => {
 }
 
 const createTask = () => {
-  taskForm.value = {
-    name: '',
-    description: '',
-    taskDefinitionId: null,
-    type: '导入'
-  }
+  taskForm.value = { name: '', description: '', taskDefinitionId: null, type: '导入' }
   dialogVisible.value = true
 }
 
@@ -256,7 +265,7 @@ const submitTaskForm = async () => {
     await taskApi.create(taskForm.value)
     ElMessage.success('任务创建成功')
     dialogVisible.value = false
-    loadTasks()
+    await loadTasks()
   } catch (error) {
     console.error('创建任务失败:', error)
     ElMessage.error('创建任务失败')
@@ -264,26 +273,38 @@ const submitTaskForm = async () => {
 }
 
 const resetFilter = () => {
-  filterForm.value = {
-    status: '',
-    type: ''
-  }
-  loadTasks()
+  filterForm.value = { keyword: '', status: '', type: '' }
+  applyFilter()
 }
 
 const handleSizeChange = (size) => {
   pageSize.value = size
-  loadTasks()
+  currentPage.value = 1
+  syncTotal()
 }
 
 const handleCurrentChange = (current) => {
   currentPage.value = current
-  loadTasks()
 }
 
-onMounted(() => {
-  loadTasks()
-  loadTaskDefinitions()
+onMounted(async () => {
+  await Promise.all([loadTasks(), loadTaskDefinitions()])
+})
+
+defineExpose({
+  getStatusType,
+  viewTask,
+  updateTaskStatus,
+  deleteTask,
+  submitTaskForm,
+  resetFilter,
+  handleSizeChange,
+  handleCurrentChange,
+  filterForm,
+  taskForm,
+  pageSize,
+  currentPage,
+  applyFilter
 })
 </script>
 
@@ -292,19 +313,69 @@ onMounted(() => {
   padding: 20px;
 }
 
+.title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: #909399;
+  font-size: 13px;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.summary-item {
+  background: #f7f9fc;
+  border: 1px solid #ebeef5;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.summary-item span {
+  color: #909399;
+  font-size: 13px;
+}
+
+.summary-item strong {
+  font-size: 20px;
+  color: #303133;
 }
 
 .task-filter {
-  margin: 20px 0;
+  margin: 14px 0 4px;
 }
 
 .pagination {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+@media (max-width: 992px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>
