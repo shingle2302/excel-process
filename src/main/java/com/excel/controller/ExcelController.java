@@ -1,16 +1,20 @@
 package com.excel.controller;
 
+import com.excel.entity.ColumnDefinition;
 import com.excel.service.ExcelService;
 import com.excel.service.StorageService;
+import com.excel.service.ColumnDefinitionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/excel")
@@ -22,21 +26,28 @@ public class ExcelController {
     @Autowired
     private StorageService storageService;
 
+    @Autowired
+    private ColumnDefinitionService columnDefinitionService;
+
     @PostMapping("/import")
     public Map<String, Object> importExcel(@RequestParam("file") MultipartFile file, 
-                                           @RequestParam("columnDefinitions") String columnDefinitionsJson) throws IOException {
-        // 解析列定义
-        List<Map<String, Object>> columnDefinitions = parseColumnDefinitions(columnDefinitionsJson);
+                                           @RequestParam("taskDefinitionId") Long taskDefinitionId) throws IOException {
+        // 根据任务定义查询列定义
+        List<ColumnDefinition> columnDefinitionList = columnDefinitionService.getByTaskDefinitionId(taskDefinitionId);
+        List<Map<String, Object>> columnDefinitions = convertToColumnDefinitions(columnDefinitionList);
         return excelService.importExcel(file, columnDefinitions);
     }
 
     @PostMapping("/export")
     public void exportExcel(@RequestParam("data") String dataJson, 
-                           @RequestParam("columnDefinitions") String columnDefinitionsJson, 
+                           @RequestParam("taskDefinitionId") Long taskDefinitionId, 
                            HttpServletResponse response) throws IOException {
-        // 解析数据和列定义
+        // 根据任务定义查询列定义
+        List<ColumnDefinition> columnDefinitionList = columnDefinitionService.getByTaskDefinitionId(taskDefinitionId);
+        List<Map<String, Object>> columnDefinitions = convertToColumnDefinitions(columnDefinitionList);
+
+        // 解析数据
         List<Map<String, Object>> data = parseData(dataJson);
-        List<Map<String, Object>> columnDefinitions = parseColumnDefinitions(columnDefinitionsJson);
 
         // 设置响应头
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -49,12 +60,19 @@ public class ExcelController {
     }
 
     /**
-     * 解析列定义
+     * 将ColumnDefinition转换为Map格式
      */
-    private List<Map<String, Object>> parseColumnDefinitions(String columnDefinitionsJson) {
-        // 这里可以使用JSON库解析，例如Jackson
-        // 简化实现，实际项目中应该使用JSON库
-        return null;
+    private List<Map<String, Object>> convertToColumnDefinitions(List<ColumnDefinition> columnDefinitionList) {
+        List<Map<String, Object>> columnDefinitions = new ArrayList<>();
+        for (ColumnDefinition columnDefinition : columnDefinitionList) {
+            Map<String, Object> column = new HashMap<>();
+            column.put("fieldName", columnDefinition.getFieldName());
+            column.put("columnName", columnDefinition.getColumnName());
+            column.put("columnType", columnDefinition.getColumnType());
+            column.put("columnFormat", columnDefinition.getColumnFormat());
+            columnDefinitions.add(column);
+        }
+        return columnDefinitions;
     }
 
     /**
