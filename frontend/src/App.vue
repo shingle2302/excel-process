@@ -1,12 +1,16 @@
 <template>
-  <div class="app-container">
+  <router-view v-if="isLoginPage" />
+  <div v-else class="app-container">
     <el-container class="main-layout">
       <el-header class="top-header">
         <div class="brand">
           <h1>Excel处理服务管理系统</h1>
           <span>更高效的数据任务运营台</span>
         </div>
-        <el-tag type="success" effect="dark">稳定运行</el-tag>
+        <div class="right-actions">
+          <el-tag type="success" effect="dark">稳定运行</el-tag>
+          <el-button type="danger" link @click="handleLogout">退出登录</el-button>
+        </div>
       </el-header>
       <el-container>
         <el-aside width="220px" class="side-nav">
@@ -29,15 +33,23 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { House, List, Document, User, Grid, Upload, Download } from '@element-plus/icons-vue'
+import { clearAuth } from './utils/auth.js'
 
 const route = useRoute()
+const router = useRouter()
 const activeMenu = ref(route.path)
+const isLoginPage = computed(() => route.path === '/login')
 
 const handleMenuSelect = (key) => {
   activeMenu.value = key
+}
+
+const handleLogout = () => {
+  clearAuth()
+  router.replace('/login')
 }
 
 watch(() => route.path, (newPath) => {
@@ -64,6 +76,12 @@ watch(() => route.path, (newPath) => {
   color: #fff;
   padding: 0 20px;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
+}
+
+.right-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .brand h1 {

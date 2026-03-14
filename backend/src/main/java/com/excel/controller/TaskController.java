@@ -26,7 +26,7 @@ public class TaskController {
 
     @PostMapping
     public Task createTask(@RequestBody Task task, @RequestHeader("X-API-Key") String apiKey) {
-        if (!clientService.validateClient(apiKey, apiKey)) {
+        if (!clientService.isActiveClient(apiKey)) {
             throw new RuntimeException("Invalid client");
         }
 

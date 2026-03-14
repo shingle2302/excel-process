@@ -56,7 +56,7 @@ class TaskControllerTest {
         taskDefinition.setId(1L);
 
         // 模拟方法调用
-        when(clientService.validateClient(anyString(), anyString())).thenReturn(true);
+        when(clientService.isActiveClient(anyString())).thenReturn(true);
         when(taskDefinitionService.getById(anyLong())).thenReturn(taskDefinition);
         when(taskService.createTask(any(Task.class))).thenReturn(task);
 
@@ -70,7 +70,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.name").value("测试任务"));
 
         // 验证结果
-        verify(clientService, times(1)).validateClient(anyString(), anyString());
+        verify(clientService, times(1)).isActiveClient(anyString());
         verify(taskDefinitionService, times(1)).getById(anyLong());
         verify(taskService, times(1)).createTask(any(Task.class));
     }
