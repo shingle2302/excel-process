@@ -1,9 +1,11 @@
 package com.excel.controller;
 
+import com.excel.dto.TaskPageResponse;
+import com.excel.dto.TaskQueryRequest;
 import com.excel.entity.Task;
-import com.excel.service.TaskService;
-import com.excel.service.TaskDefinitionService;
 import com.excel.service.ClientService;
+import com.excel.service.TaskDefinitionService;
+import com.excel.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,12 +26,10 @@ public class TaskController {
 
     @PostMapping
     public Task createTask(@RequestBody Task task, @RequestHeader("X-API-Key") String apiKey) {
-        // 验证客户端
         if (!clientService.validateClient(apiKey, apiKey)) {
             throw new RuntimeException("Invalid client");
         }
 
-        // 验证任务定义
         if (task.getTaskDefinitionId() != null) {
             var taskDefinition = taskDefinitionService.getById(task.getTaskDefinitionId());
             if (taskDefinition == null) {
@@ -46,6 +46,23 @@ public class TaskController {
             return taskService.getByStatus(status);
         }
         return taskService.list();
+    }
+
+    @GetMapping("/query")
+    public TaskPageResponse queryTasks(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String type,
+            @RequestParam(defaultValue = "1") Integer pageNo,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        TaskQueryRequest request = new TaskQueryRequest();
+        request.setKeyword(keyword);
+        request.setStatus(status);
+        request.setType(type);
+        request.setPageNo(pageNo);
+        request.setPageSize(pageSize);
+        return taskService.queryTasks(request);
     }
 
     @GetMapping("/{id}")
