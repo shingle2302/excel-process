@@ -1,5 +1,6 @@
 package com.excel.controller;
 
+import com.excel.dto.TaskPageResponse;
 import com.excel.entity.Task;
 import com.excel.entity.TaskDefinition;
 import com.excel.service.TaskService;
@@ -170,4 +171,32 @@ class TaskControllerTest {
         verify(taskService, times(1)).getById(anyLong());
         verify(taskService, times(1)).removeById(anyLong());
     }
+    @Test
+    void testQueryTasks() throws Exception {
+        Task task = new Task();
+        task.setId(100L);
+        task.setName("分页任务");
+
+        TaskPageResponse response = new TaskPageResponse();
+        response.setRecords(List.of(task));
+        response.setTotal(1);
+        response.setPageNo(1);
+        response.setPageSize(10);
+        response.setTotalPages(1);
+
+        when(taskService.queryTasks(any())).thenReturn(response);
+
+        mockMvc.perform(get("/api/tasks/query")
+                .param("keyword", "分页")
+                .param("status", "处理中")
+                .param("type", "导入")
+                .param("pageNo", "1")
+                .param("pageSize", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.records[0].id").value(100));
+
+        verify(taskService, times(1)).queryTasks(any());
+    }
+
 }
