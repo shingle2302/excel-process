@@ -13,6 +13,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
@@ -21,7 +22,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     private final String apiKeyHeader;
 
     @Autowired
-    public ApiKeyAuthenticationFilter(ClientService clientService, String apiKeyHeader) {
+    public ApiKeyAuthenticationFilter(ClientService clientService, @Value("${api.key.header:X-API-Key}") String apiKeyHeader) {
         this.clientService = clientService;
         this.apiKeyHeader = apiKeyHeader;
     }
