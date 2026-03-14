@@ -12,7 +12,7 @@ This comprehensive guide covers essential Java coding best practices for buildin
 ## 1. Project Overview
 
 - **Language**: Java 17+
-- **Framework**: Spring Boot 3.x, Mybatis Plus 3.5.x
+- **Framework**: Spring Boot 3.x, Mybatis Plus 3.5.x,Spring Cloud Alibab 2023.x
 - **Build Tool**: Maven/Gradle
 - **Architecture**: Microservices with plugin system
 
