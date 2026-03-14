@@ -1,5 +1,8 @@
 package com.excel.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.excel.dto.TaskPageResponse;
+import com.excel.dto.TaskQueryRequest;
 import com.excel.entity.Task;
 import com.excel.mapper.TaskMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class TaskServiceImplTest {
@@ -139,4 +143,49 @@ class TaskServiceImplTest {
         // 验证结果
         verify(taskMapper, times(1)).updateById(any(Task.class));
     }
+
+    @Test
+    void testQueryTasks() {
+        Task task = new Task();
+        task.setId(1L);
+        task.setName("query-task");
+
+        Page<Task> pageResult = new Page<>(1, 10);
+        pageResult.setRecords(List.of(task));
+        pageResult.setTotal(1);
+
+        when(taskMapper.selectPage(any(Page.class), any())).thenReturn(pageResult);
+
+        TaskQueryRequest request = new TaskQueryRequest();
+        request.setKeyword("query");
+        request.setStatus("处理中");
+        request.setType("导入");
+        request.setPageNo(1);
+        request.setPageSize(10);
+
+        TaskPageResponse result = taskService.queryTasks(request);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotal());
+        assertEquals(1, result.getRecords().size());
+        verify(taskMapper, times(1)).selectPage(any(Page.class), any());
+    }
+
+    @Test
+    void testGetRecentTasks() {
+        Task task = new Task();
+        task.setId(1L);
+
+        Page<Task> pageResult = new Page<>(1, 3);
+        pageResult.setRecords(List.of(task));
+
+        when(taskMapper.selectPage(any(Page.class), any())).thenReturn(pageResult);
+
+        List<Task> result = taskService.getRecentTasks(3);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(taskMapper, times(1)).selectPage(any(Page.class), any());
+    }
+
 }

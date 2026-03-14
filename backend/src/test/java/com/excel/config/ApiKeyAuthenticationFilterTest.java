@@ -42,13 +42,13 @@ class ApiKeyAuthenticationFilterTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         // 模拟方法调用
-        when(clientService.validateClient(anyString(), anyString())).thenReturn(true);
+        when(clientService.isActiveClient(anyString())).thenReturn(true);
 
         // 执行测试
         apiKeyAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         // 验证结果
-        verify(clientService, times(1)).validateClient(anyString(), anyString());
+        verify(clientService, times(1)).isActiveClient(anyString());
         verify(filterChain, times(1)).doFilter(any(), any());
     }
 
@@ -60,13 +60,13 @@ class ApiKeyAuthenticationFilterTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         // 模拟方法调用
-        when(clientService.validateClient(anyString(), anyString())).thenReturn(false);
+        when(clientService.isActiveClient(anyString())).thenReturn(false);
 
         // 执行测试
         apiKeyAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         // 验证结果
-        verify(clientService, times(1)).validateClient(anyString(), anyString());
+        verify(clientService, times(1)).isActiveClient(anyString());
         verify(filterChain, times(0)).doFilter(any(), any());
         assertEquals(401, response.getStatus());
     }
@@ -81,7 +81,7 @@ class ApiKeyAuthenticationFilterTest {
         apiKeyAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         // 验证结果
-        verify(clientService, times(0)).validateClient(anyString(), anyString());
+        verify(clientService, times(0)).isActiveClient(anyString());
         verify(filterChain, times(1)).doFilter(any(), any());
     }
 }

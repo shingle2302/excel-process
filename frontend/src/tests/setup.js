@@ -38,6 +38,9 @@ vi.mock('../services/api.js', () => ({
       response: { use: vi.fn() }
     }
   },
+  authApi: {
+    login: vi.fn().mockResolvedValue({ apiKey: "admin", clientName: "系统管理员", expiresIn: 7200 })
+  },
   taskApi: {
     create: vi.fn().mockResolvedValue({ id: 1, name: '测试任务' }),
     list: vi.fn().mockResolvedValue([]),

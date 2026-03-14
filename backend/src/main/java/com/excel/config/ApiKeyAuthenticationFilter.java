@@ -29,11 +29,16 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        if (request.getRequestURI().startsWith("/api/auth/login")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String apiKey = request.getHeader(apiKeyHeader);
 
         if (apiKey != null) {
             // 验证API Key
-            boolean valid = clientService.validateClient(apiKey, apiKey);
+            boolean valid = clientService.isActiveClient(apiKey);
             if (valid) {
                 // 创建认证对象
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(apiKey, null, null);
