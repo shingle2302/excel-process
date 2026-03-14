@@ -41,7 +41,7 @@ excel-process-service/
 
 2. **配置数据库**
    - 创建数据库：`excel_process`
-   - 运行初始化脚本：`backend/src/main/resources/db/init.sql`
+   - 运行初始化脚本：`backend/src/main/resources/db/schema.sql`
 
 3. **配置应用**
    - 修改`backend/src/main/resources/application.yml`中的配置
