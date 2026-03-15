@@ -1,9 +1,11 @@
 package com.excel.service.impl;
 
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.data.ReadCellData;
+import com.alibaba.excel.write.metadata.WriteSheet;
 import com.excel.service.ExcelService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +21,8 @@ import java.util.Map;
 @Service
 public class ExcelServiceImpl implements ExcelService {
 
+    private static final int EXPORT_BATCH_SIZE = 1000;
+
     @Override
     public Map<String, Object> importExcel(MultipartFile file, List<Map<String, Object>> columnDefinitions) throws IOException {
         List<Map<String, Object>> dataList = parseExcel(file.getInputStream(), columnDefinitions);
@@ -32,79 +36,79 @@ public class ExcelServiceImpl implements ExcelService {
     @Override
     public void exportExcel(List<Map<String, Object>> data, List<Map<String, Object>> columnDefinitions, OutputStream outputStream) throws IOException {
         // 构建表头
-        List<String> headList = new ArrayList<>();
-        List<String> fieldList = new ArrayList<>();
+        List<String> headList = new ArrayList<>(columnDefinitions.size());
+        List<String> fieldList = new ArrayList<>(columnDefinitions.size());
         for (Map<String, Object> column : columnDefinitions) {
             headList.add((String) column.get("columnName"));
             fieldList.add((String) column.get("fieldName"));
         }
 
-        // 构建导出数据
-        List<List<Object>> exportData = new ArrayList<>();
-        for (Map<String, Object> row : data) {
-            List<Object> rowData = new ArrayList<>();
-            for (String field : fieldList) {
-                rowData.add(row.get(field));
-            }
-            exportData.add(rowData);
-        }
+        // 分批导出，避免大数据量时占用过多内存
+        try (ExcelWriter excelWriter = EasyExcel.write(outputStream).head(buildHead(headList)).build()) {
+            WriteSheet writeSheet = EasyExcel.writerSheet("Sheet1").build();
+            List<List<Object>> batchData = new ArrayList<>(Math.min(data.size(), EXPORT_BATCH_SIZE));
+            for (Map<String, Object> row : data) {
+                List<Object> rowData = new ArrayList<>(fieldList.size());
+                for (String field : fieldList) {
+                    rowData.add(row.get(field));
+                }
+                batchData.add(rowData);
 
-        // 导出Excel
-        EasyExcel.write(outputStream).sheet("Sheet1").head(buildHead(headList)).doWrite(exportData);
+                if (batchData.size() >= EXPORT_BATCH_SIZE) {
+                    excelWriter.write(batchData, writeSheet);
+                    batchData = new ArrayList<>(Math.min(data.size(), EXPORT_BATCH_SIZE));
+                }
+            }
+
+            if (!batchData.isEmpty()) {
+                excelWriter.write(batchData, writeSheet);
+            }
+        }
     }
 
     @Override
     public List<Map<String, Object>> parseExcel(InputStream inputStream, List<Map<String, Object>> columnDefinitions) throws IOException {
         List<Map<String, Object>> dataList = new ArrayList<>();
-        final Map<Integer, String>[] headerMapHolder = new Map[1];
-
         // 构建字段映射
-        Map<Integer, String> indexToFieldMap = new HashMap<>();
+        Map<Integer, String> indexToFieldMap = new HashMap<>(columnDefinitions.size());
         for (int i = 0; i < columnDefinitions.size(); i++) {
             indexToFieldMap.put(i, (String) columnDefinitions.get(i).get("fieldName"));
         }
 
         // 构建列名到字段名的映射
-        Map<String, String> columnNameToFieldMap = new HashMap<>();
+        Map<String, String> columnNameToFieldMap = new HashMap<>(columnDefinitions.size());
         for (Map<String, Object> column : columnDefinitions) {
             columnNameToFieldMap.put((String) column.get("columnName"), (String) column.get("fieldName"));
         }
 
         // 解析Excel/CSV
         EasyExcel.read(inputStream, new AnalysisEventListener<Map<Integer, String>>() {
+            private Map<Integer, String> resolvedIndexToFieldMap = indexToFieldMap;
+
             @Override
             public void invokeHead(Map<Integer, ReadCellData<?>> headMap, AnalysisContext context) {
-                // 保存表头信息
-                Map<Integer, String> stringHeadMap = new HashMap<>();
+                // 基于表头计算列索引到字段的映射，避免每行重复做列名匹配
+                Map<Integer, String> matchedFieldMap = new HashMap<>(headMap.size());
                 for (Map.Entry<Integer, ReadCellData<?>> entry : headMap.entrySet()) {
-                    stringHeadMap.put(entry.getKey(), entry.getValue().getStringValue());
+                    String columnName = entry.getValue().getStringValue();
+                    String fieldName = columnNameToFieldMap.get(columnName);
+                    if (fieldName != null) {
+                        matchedFieldMap.put(entry.getKey(), fieldName);
+                    }
                 }
-                headerMapHolder[0] = stringHeadMap;
+
+                if (!matchedFieldMap.isEmpty()) {
+                    resolvedIndexToFieldMap = matchedFieldMap;
+                }
             }
 
             @Override
             public void invoke(Map<Integer, String> row, AnalysisContext context) {
-                Map<String, Object> rowData = new HashMap<>();
-                Map<Integer, String> headerMap = headerMapHolder[0];
-                if (headerMap != null) {
-                    // 使用表头映射
-                    for (Map.Entry<Integer, String> entry : row.entrySet()) {
-                        Integer index = entry.getKey();
-                        String columnName = headerMap.get(index);
-                        if (columnName != null) {
-                            String fieldName = columnNameToFieldMap.get(columnName);
-                            if (fieldName != null) {
-                                rowData.put(fieldName, entry.getValue());
-                            }
-                        }
-                    }
-                } else {
-                    // 使用索引映射
-                    for (Map.Entry<Integer, String> entry : row.entrySet()) {
-                        String fieldName = indexToFieldMap.get(entry.getKey());
-                        if (fieldName != null) {
-                            rowData.put(fieldName, entry.getValue());
-                        }
+                Map<String, Object> rowData = new HashMap<>(resolvedIndexToFieldMap.size());
+                for (Map.Entry<Integer, String> entry : row.entrySet()) {
+                    String fieldName = resolvedIndexToFieldMap.get(entry.getKey());
+                    if (fieldName != null) {
+                        rowData.put(fieldName, entry.getValue());
                     }
                 }
                 dataList.add(rowData);

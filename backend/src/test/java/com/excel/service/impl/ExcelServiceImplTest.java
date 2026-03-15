@@ -105,6 +105,46 @@ class ExcelServiceImplTest {
     }
 
     @Test
+    void testExportExcelWithLargeDataBatch() throws IOException {
+        List<Map<String, Object>> data = new ArrayList<>();
+        for (int i = 0; i < 2505; i++) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("id", i + 1);
+            row.put("username", "user-" + i);
+            row.put("email", "user-" + i + "@example.com");
+            data.add(row);
+        }
+
+        List<Map<String, Object>> columnDefinitions = new ArrayList<>();
+        Map<String, Object> column1 = new HashMap<>();
+        column1.put("fieldName", "id");
+        column1.put("columnName", "ID");
+        column1.put("columnType", "number");
+        columnDefinitions.add(column1);
+
+        Map<String, Object> column2 = new HashMap<>();
+        column2.put("fieldName", "username");
+        column2.put("columnName", "Username");
+        column2.put("columnType", "string");
+        columnDefinitions.add(column2);
+
+        Map<String, Object> column3 = new HashMap<>();
+        column3.put("fieldName", "email");
+        column3.put("columnName", "Email");
+        column3.put("columnType", "string");
+        columnDefinitions.add(column3);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        excelService.exportExcel(data, columnDefinitions, outputStream);
+
+        InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        List<Map<String, Object>> parsed = excelService.parseExcel(inputStream, columnDefinitions);
+
+        assertEquals(2505, parsed.size());
+        assertEquals("user-2504", parsed.get(2504).get("username"));
+    }
+
+    @Test
     void testParseExcel() throws IOException {
         // 准备测试数据 - 使用真实的Excel格式
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
