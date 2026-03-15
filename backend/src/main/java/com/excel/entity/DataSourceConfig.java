@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("task_definition")
-public class TaskDefinition implements Serializable {
+@TableName("data_source_config")
+public class DataSourceConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -23,38 +23,13 @@ public class TaskDefinition implements Serializable {
 
     private String name;
 
-    private String description;
-
     private String type;
 
-    private Long clientId;
+    private String connectionConfig;
 
-    private String params;
-
-    private String callbackUrl;
-
-    private String callbackMethod;
-
-    private String dataFetchType;
-
-    private Long dataSourceId;
-
-    private String querySql;
-
-    private String httpMethod;
-
-    private String httpUrl;
-
-    private Boolean httpNeedAuth;
-
-    private String authUrl;
-
-    private String authParams;
-
-    private String requestParams;
+    private String description;
 
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
-
 }

@@ -10,6 +10,17 @@ CREATE TABLE IF NOT EXISTS client (
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- 数据源配置表
+CREATE TABLE IF NOT EXISTS data_source_config (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    type VARCHAR(20) NOT NULL,
+    connection_config TEXT,
+    description VARCHAR(500),
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- 任务定义表
 CREATE TABLE IF NOT EXISTS task_definition (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -20,9 +31,19 @@ CREATE TABLE IF NOT EXISTS task_definition (
     params TEXT,
     callback_url VARCHAR(500),
     callback_method VARCHAR(10),
+    data_fetch_type VARCHAR(20) DEFAULT 'sql',
+    data_source_id BIGINT,
+    query_sql TEXT,
+    http_method VARCHAR(10),
+    http_url VARCHAR(500),
+    http_need_auth BOOLEAN DEFAULT FALSE,
+    auth_url VARCHAR(500),
+    auth_params TEXT,
+    request_params TEXT,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (client_id) REFERENCES client(id)
+    FOREIGN KEY (client_id) REFERENCES client(id),
+    FOREIGN KEY (data_source_id) REFERENCES data_source_config(id)
 );
 
 -- 任务表
@@ -34,6 +55,15 @@ CREATE TABLE IF NOT EXISTS task (
     type VARCHAR(20) NOT NULL,
     status VARCHAR(20) DEFAULT '待处理',
     file_path VARCHAR(500),
+    data_fetch_type VARCHAR(20),
+    data_source_id BIGINT,
+    query_sql TEXT,
+    http_method VARCHAR(10),
+    http_url VARCHAR(500),
+    http_need_auth BOOLEAN DEFAULT FALSE,
+    auth_url VARCHAR(500),
+    auth_params TEXT,
+    request_params TEXT,
     params TEXT,
     result TEXT,
     error_message TEXT,
@@ -42,7 +72,8 @@ CREATE TABLE IF NOT EXISTS task (
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     start_time TIMESTAMP,
     end_time TIMESTAMP,
-    FOREIGN KEY (task_definition_id) REFERENCES task_definition(id)
+    FOREIGN KEY (task_definition_id) REFERENCES task_definition(id),
+    FOREIGN KEY (data_source_id) REFERENCES data_source_config(id)
 );
 
 -- 数据列定义表
