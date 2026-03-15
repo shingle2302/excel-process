@@ -34,7 +34,7 @@ public class TaskController {
             throw new RuntimeException("Invalid client");
         }
 
-        validateTaskDefinition(task, null);
+        mergeTaskDefinitionConfig(task, null);
         return taskService.createTask(task);
     }
 
@@ -53,32 +53,44 @@ public class TaskController {
         task.setName(request.getName());
         task.setDescription(request.getDescription());
         task.setType(request.getType());
-        task.setDataFetchType(request.getDataFetchType());
-        task.setDataSourceId(request.getDataSourceId());
-        task.setQuerySql(request.getQuerySql());
-        task.setHttpMethod(request.getHttpMethod());
-        task.setHttpUrl(request.getHttpUrl());
-        task.setHttpNeedAuth(request.getHttpNeedAuth());
-        task.setAuthUrl(request.getAuthUrl());
-        task.setAuthParams(request.getAuthParams());
         task.setRequestParams(request.getRequestParams());
         task.setParams(request.getParams());
 
-        validateTaskDefinition(task, client.getId());
+        mergeTaskDefinitionConfig(task, client.getId());
 
         Task createdTask = taskService.createTask(task);
         return new ExternalTaskCreateResponse(client.getClientId(), client.getClientName(), createdTask);
     }
 
-    private void validateTaskDefinition(Task task, Long clientId) {
-        if (task.getTaskDefinitionId() != null) {
-            TaskDefinition taskDefinition = taskDefinitionService.getById(task.getTaskDefinitionId());
-            if (taskDefinition == null) {
-                throw new RuntimeException("Task definition not found");
-            }
-            if (clientId != null && taskDefinition.getClientId() != null && !taskDefinition.getClientId().equals(clientId)) {
-                throw new RuntimeException("任务定义不属于当前客户端");
-            }
+    private void mergeTaskDefinitionConfig(Task task, Long clientId) {
+        if (task.getTaskDefinitionId() == null) {
+            return;
+        }
+        TaskDefinition taskDefinition = taskDefinitionService.getById(task.getTaskDefinitionId());
+        if (taskDefinition == null) {
+            throw new RuntimeException("Task definition not found");
+        }
+        if (clientId != null && taskDefinition.getClientId() != null && !taskDefinition.getClientId().equals(clientId)) {
+            throw new RuntimeException("任务定义不属于当前客户端");
+        }
+
+        if (task.getType() == null) {
+            task.setType(taskDefinition.getType());
+        }
+        task.setDataFetchType(taskDefinition.getDataFetchType());
+        task.setDataSourceId(taskDefinition.getDataSourceId());
+        task.setQuerySql(taskDefinition.getQuerySql());
+        task.setHttpMethod(taskDefinition.getHttpMethod());
+        task.setHttpUrl(taskDefinition.getHttpUrl());
+        task.setHttpNeedAuth(taskDefinition.getHttpNeedAuth());
+        task.setAuthUrl(taskDefinition.getAuthUrl());
+        task.setAuthParams(taskDefinition.getAuthParams());
+
+        if (task.getRequestParams() == null) {
+            task.setRequestParams(taskDefinition.getRequestParams());
+        }
+        if (task.getParams() == null) {
+            task.setParams(taskDefinition.getParams());
         }
     }
 

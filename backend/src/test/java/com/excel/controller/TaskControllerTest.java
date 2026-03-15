@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.mockito.ArgumentCaptor;
+
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -209,6 +211,10 @@ class TaskControllerTest {
         TaskDefinition taskDefinition = new TaskDefinition();
         taskDefinition.setId(1L);
         taskDefinition.setClientId(1L);
+        taskDefinition.setType("导出");
+        taskDefinition.setDataFetchType("http");
+        taskDefinition.setHttpMethod("POST");
+        taskDefinition.setHttpUrl("http://localhost:8080/api/mock-http-source/query/public");
 
         var client = new com.excel.entity.Client();
         client.setId(1L);
@@ -228,7 +234,7 @@ class TaskControllerTest {
                                   "clientSecret": "test-secret",
                                   "taskDefinitionId": 1,
                                   "name": "外部任务",
-                                  "type": "导出"
+                                  "requestParams": "{\"status\":\"active\"}"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -236,8 +242,13 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.clientName").value("测试客户端"))
                 .andExpect(jsonPath("$.task.id").value(2));
 
-        verify(clientService, times(1)).validateClient("test-client", "test-secret");
-        verify(taskService, times(1)).createTask(any(Task.class));
+        ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
+        verify(taskService, times(1)).createTask(taskCaptor.capture());
+        Task createdTask = taskCaptor.getValue();
+        org.junit.jupiter.api.Assertions.assertEquals("http", createdTask.getDataFetchType());
+        org.junit.jupiter.api.Assertions.assertEquals("POST", createdTask.getHttpMethod());
+        org.junit.jupiter.api.Assertions.assertEquals("http://localhost:8080/api/mock-http-source/query/public", createdTask.getHttpUrl());
+        org.junit.jupiter.api.Assertions.assertEquals("{\"status\":\"active\"}", createdTask.getRequestParams());
     }
 
 }

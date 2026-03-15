@@ -36,8 +36,11 @@ request.clientId = "test-client";
 request.clientSecret = "test-secret";
 request.taskDefinitionId = 1L;
 request.name = "sdk-create-task";
-request.type = "导出";
+request.requestParams = "{\"status\":\"active\"}";
 
 ExternalTaskCreateResponse response = client.createTask(request);
 System.out.println(response.task.id);
 ```
+
+
+> 使用 `taskDefinitionId` 创建外部任务时，无需传递 `dataFetchType`、`dataSourceId`、`querySql`、`httpMethod`、`httpUrl`、`httpNeedAuth`、`authUrl`、`authParams` 等数据来源相关参数。
