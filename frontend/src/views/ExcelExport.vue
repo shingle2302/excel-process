@@ -26,7 +26,7 @@
               placeholder="请输入JSON格式的数据"
             />
             <div class="form-tip">
-              示例: [{"id": 1, "name": "测试", "value": "值"}]
+              示例: [{"id": 1, "username": "测试", "email":"zhangsan@test.com","createTime": "2025-03-15 13:31:00"}]
             </div>
           </el-form-item>
           <el-form-item>
