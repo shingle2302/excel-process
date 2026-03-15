@@ -53,14 +53,6 @@ public class TaskController {
         task.setName(request.getName());
         task.setDescription(request.getDescription());
         task.setType(request.getType());
-        task.setDataFetchType(request.getDataFetchType());
-        task.setDataSourceId(request.getDataSourceId());
-        task.setQuerySql(request.getQuerySql());
-        task.setHttpMethod(request.getHttpMethod());
-        task.setHttpUrl(request.getHttpUrl());
-        task.setHttpNeedAuth(request.getHttpNeedAuth());
-        task.setAuthUrl(request.getAuthUrl());
-        task.setAuthParams(request.getAuthParams());
         task.setRequestParams(request.getRequestParams());
         task.setParams(request.getParams());
 
