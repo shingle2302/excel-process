@@ -19,6 +19,7 @@
             <el-menu-item index="/tasks"><el-icon><List /></el-icon><span>任务管理</span></el-menu-item>
             <el-menu-item index="/task-definitions"><el-icon><Document /></el-icon><span>任务定义管理</span></el-menu-item>
             <el-menu-item index="/clients"><el-icon><User /></el-icon><span>客户端管理</span></el-menu-item>
+            <el-menu-item index="/data-sources"><el-icon><Connection /></el-icon><span>数据源管理</span></el-menu-item>
             <el-menu-item index="/column-definitions"><el-icon><Grid /></el-icon><span>数据列定义管理</span></el-menu-item>
             <el-menu-item index="/excel/import"><el-icon><Upload /></el-icon><span>Excel导入</span></el-menu-item>
             <el-menu-item index="/excel/export"><el-icon><Download /></el-icon><span>Excel导出</span></el-menu-item>
@@ -35,7 +36,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { House, List, Document, User, Grid, Upload, Download } from '@element-plus/icons-vue'
+import { House, List, Document, User, Grid, Upload, Download, Connection } from '@element-plus/icons-vue'
 import { clearAuth } from './utils/auth.js'
 
 const route = useRoute()

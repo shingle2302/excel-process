@@ -1,8 +1,12 @@
 package com.excel.controller;
 
+import com.excel.dto.ExternalTaskCreateRequest;
+import com.excel.dto.ExternalTaskCreateResponse;
 import com.excel.dto.TaskPageResponse;
 import com.excel.dto.TaskQueryRequest;
+import com.excel.entity.Client;
 import com.excel.entity.Task;
+import com.excel.entity.TaskDefinition;
 import com.excel.service.ClientService;
 import com.excel.service.TaskDefinitionService;
 import com.excel.service.TaskService;
@@ -30,14 +34,52 @@ public class TaskController {
             throw new RuntimeException("Invalid client");
         }
 
+        validateTaskDefinition(task, null);
+        return taskService.createTask(task);
+    }
+
+    @PostMapping("/external")
+    public ExternalTaskCreateResponse createExternalTask(@RequestBody ExternalTaskCreateRequest request) {
+        boolean valid = clientService.validateClient(request.getClientId(), request.getClientSecret());
+        if (!valid) {
+            throw new RuntimeException("客户端认证失败");
+        }
+
+        Client client = clientService.getByClientId(request.getClientId())
+                .orElseThrow(() -> new RuntimeException("客户端不存在"));
+
+        Task task = new Task();
+        task.setTaskDefinitionId(request.getTaskDefinitionId());
+        task.setName(request.getName());
+        task.setDescription(request.getDescription());
+        task.setType(request.getType());
+        task.setDataFetchType(request.getDataFetchType());
+        task.setDataSourceId(request.getDataSourceId());
+        task.setQuerySql(request.getQuerySql());
+        task.setHttpMethod(request.getHttpMethod());
+        task.setHttpUrl(request.getHttpUrl());
+        task.setHttpNeedAuth(request.getHttpNeedAuth());
+        task.setAuthUrl(request.getAuthUrl());
+        task.setAuthParams(request.getAuthParams());
+        task.setRequestParams(request.getRequestParams());
+        task.setParams(request.getParams());
+
+        validateTaskDefinition(task, client.getId());
+
+        Task createdTask = taskService.createTask(task);
+        return new ExternalTaskCreateResponse(client.getClientId(), client.getClientName(), createdTask);
+    }
+
+    private void validateTaskDefinition(Task task, Long clientId) {
         if (task.getTaskDefinitionId() != null) {
-            var taskDefinition = taskDefinitionService.getById(task.getTaskDefinitionId());
+            TaskDefinition taskDefinition = taskDefinitionService.getById(task.getTaskDefinitionId());
             if (taskDefinition == null) {
                 throw new RuntimeException("Task definition not found");
             }
+            if (clientId != null && taskDefinition.getClientId() != null && !taskDefinition.getClientId().equals(clientId)) {
+                throw new RuntimeException("任务定义不属于当前客户端");
+            }
         }
-
-        return taskService.createTask(task);
     }
 
     @GetMapping

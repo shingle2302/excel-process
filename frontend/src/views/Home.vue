@@ -90,13 +90,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { taskApi, taskDefinitionApi, clientApi, columnDefinitionApi } from '../services/api'
+import { taskApi, taskDefinitionApi, clientApi, columnDefinitionApi, dataSourceApi } from '../services/api'
 
 const router = useRouter()
 const taskCount = ref(0)
 const taskDefinitionCount = ref(0)
 const clientCount = ref(0)
 const columnDefinitionCount = ref(0)
+const dataSourceCount = ref(0)
 const recentTasks = ref([])
 const allTasks = ref([])
 
@@ -134,7 +135,8 @@ const kpiCards = computed(() => ([
   { label: '总任务数', value: taskCount.value, desc: '任务执行总量' },
   { label: '任务定义数', value: taskDefinitionCount.value, desc: '可复用模板配置' },
   { label: '客户端数', value: clientCount.value, desc: '已接入系统客户' },
-  { label: '字段定义数', value: columnDefinitionCount.value, desc: '数据标准化基础' }
+  { label: '字段定义数', value: columnDefinitionCount.value, desc: '数据标准化基础' },
+  { label: '数据源数', value: dataSourceCount.value, desc: 'SQL数据连接配置' }
 ]))
 
 const loadStats = async () => {
@@ -143,15 +145,17 @@ const loadStats = async () => {
     allTasks.value = tasks
     taskCount.value = tasks.length
 
-    const [taskDefinitions, clients, columnDefinitions] = await Promise.all([
+    const [taskDefinitions, clients, columnDefinitions, dataSources] = await Promise.all([
       taskDefinitionApi.list(),
       clientApi.list(),
-      columnDefinitionApi.list()
+      columnDefinitionApi.list(),
+      dataSourceApi.list()
     ])
 
     taskDefinitionCount.value = taskDefinitions.length
     clientCount.value = clients.length
     columnDefinitionCount.value = columnDefinitions.length
+    dataSourceCount.value = dataSources.length
     recentTasks.value = tasks.slice(0, 6)
   } catch (error) {
     console.error('加载统计数据失败:', error)

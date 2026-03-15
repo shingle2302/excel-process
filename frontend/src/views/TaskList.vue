@@ -131,6 +131,47 @@
             <el-option label="导出" value="导出" />
           </el-select>
         </el-form-item>
+        <el-form-item label="获取数据方法">
+          <el-radio-group v-model="taskForm.dataFetchType">
+            <el-radio label="sql">SQL查询</el-radio>
+            <el-radio label="http">HTTP请求</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <template v-if="taskForm.dataFetchType === 'sql'">
+          <el-form-item label="数据源">
+            <el-select v-model="taskForm.dataSourceId" placeholder="请选择数据源">
+              <el-option v-for="item in dataSources" :key="item.id" :label="item.name" :value="item.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="SQL语句">
+            <el-input v-model="taskForm.querySql" type="textarea" :rows="3" placeholder="请输入查询SQL" />
+          </el-form-item>
+        </template>
+        <template v-else>
+          <el-form-item label="HTTP方法">
+            <el-select v-model="taskForm.httpMethod" placeholder="请选择HTTP方法">
+              <el-option label="GET" value="GET" />
+              <el-option label="POST" value="POST" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="查询接口URL">
+            <el-input v-model="taskForm.httpUrl" placeholder="请输入查询接口URL" />
+          </el-form-item>
+          <el-form-item label="查询参数(JSON)">
+            <el-input v-model="taskForm.requestParams" type="textarea" :rows="3" />
+          </el-form-item>
+          <el-form-item label="需要认证">
+            <el-switch v-model="taskForm.httpNeedAuth" />
+          </el-form-item>
+          <template v-if="taskForm.httpNeedAuth">
+            <el-form-item label="认证接口URL">
+              <el-input v-model="taskForm.authUrl" placeholder="请输入认证接口URL" />
+            </el-form-item>
+            <el-form-item label="认证参数(JSON)">
+              <el-input v-model="taskForm.authParams" type="textarea" :rows="3" />
+            </el-form-item>
+          </template>
+        </template>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -147,17 +188,34 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { taskApi, taskDefinitionApi } from '../services/api'
+import { taskApi, taskDefinitionApi, dataSourceApi } from '../services/api'
 
 const router = useRouter()
 const tasks = ref([])
 const taskDefinitions = ref([])
+const dataSources = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const filterForm = ref({ keyword: '', status: '', type: '' })
 const dialogVisible = ref(false)
-const taskForm = ref({ name: '', description: '', taskDefinitionId: null, type: '导入' })
+const buildTaskForm = () => ({
+  name: '',
+  description: '',
+  taskDefinitionId: null,
+  type: '导入',
+  dataFetchType: 'sql',
+  dataSourceId: null,
+  querySql: '',
+  httpMethod: 'POST',
+  httpUrl: '',
+  requestParams: '{}',
+  httpNeedAuth: false,
+  authUrl: '',
+  authParams: '{}'
+})
+
+const taskForm = ref(buildTaskForm())
 
 const getStatusType = (status) => {
   const statusMap = {
@@ -229,6 +287,14 @@ const loadTaskDefinitions = async () => {
   }
 }
 
+const loadDataSources = async () => {
+  try {
+    dataSources.value = await dataSourceApi.list()
+  } catch (error) {
+    console.error('加载数据源失败:', error)
+  }
+}
+
 const viewTask = (taskId) => {
   router.push(`/task/${taskId}`)
 }
@@ -256,7 +322,7 @@ const deleteTask = async (taskId) => {
 }
 
 const createTask = () => {
-  taskForm.value = { name: '', description: '', taskDefinitionId: null, type: '导入' }
+  taskForm.value = buildTaskForm()
   dialogVisible.value = true
 }
 
@@ -288,7 +354,7 @@ const handleCurrentChange = (current) => {
 }
 
 onMounted(async () => {
-  await Promise.all([loadTasks(), loadTaskDefinitions()])
+  await Promise.all([loadTasks(), loadTaskDefinitions(), loadDataSources()])
 })
 
 defineExpose({

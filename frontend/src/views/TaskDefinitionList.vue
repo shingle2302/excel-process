@@ -15,6 +15,7 @@
         <el-table-column prop="name" label="任务名称" />
         <el-table-column prop="description" label="任务描述" />
         <el-table-column prop="type" label="任务类型" width="100" />
+        <el-table-column prop="dataFetchType" label="数据来源" width="100" />
         <el-table-column prop="clientId" label="客户端ID" width="120" />
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column prop="updateTime" label="更新时间" width="180" />
@@ -44,14 +45,13 @@
         />
       </div>
     </el-card>
-    
-    <!-- 新建/编辑任务定义对话框 -->
+
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑任务定义' : '新建任务定义'"
-      width="600px"
+      width="700px"
     >
-      <el-form :model="taskDefinitionForm" label-width="120px">
+      <el-form :model="taskDefinitionForm" label-width="130px">
         <el-form-item label="任务名称">
           <el-input v-model="taskDefinitionForm.name" placeholder="请输入任务名称" />
         </el-form-item>
@@ -72,6 +72,65 @@
         <el-form-item label="客户端ID">
           <el-input v-model="taskDefinitionForm.clientId" placeholder="请输入客户端ID" />
         </el-form-item>
+        <el-form-item label="获取数据方法">
+          <el-radio-group v-model="taskDefinitionForm.dataFetchType">
+            <el-radio label="sql">SQL查询</el-radio>
+            <el-radio label="http">HTTP请求</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <template v-if="taskDefinitionForm.dataFetchType === 'sql'">
+          <el-form-item label="数据源">
+            <el-select v-model="taskDefinitionForm.dataSourceId" placeholder="请选择数据源">
+              <el-option v-for="item in dataSources" :key="item.id" :label="item.name" :value="item.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="SQL语句">
+            <el-input
+              v-model="taskDefinitionForm.querySql"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入查询SQL"
+            />
+          </el-form-item>
+        </template>
+
+        <template v-else>
+          <el-form-item label="HTTP方法">
+            <el-select v-model="taskDefinitionForm.httpMethod" placeholder="请选择HTTP方法">
+              <el-option label="GET" value="GET" />
+              <el-option label="POST" value="POST" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="查询接口URL">
+            <el-input v-model="taskDefinitionForm.httpUrl" placeholder="请输入查询接口URL" />
+          </el-form-item>
+          <el-form-item label="查询参数(JSON)">
+            <el-input
+              v-model="taskDefinitionForm.requestParams"
+              type="textarea"
+              :rows="3"
+              placeholder='例如: {"pageNo":1,"pageSize":100}'
+            />
+          </el-form-item>
+          <el-form-item label="是否需要认证">
+            <el-switch v-model="taskDefinitionForm.httpNeedAuth" />
+          </el-form-item>
+          <template v-if="taskDefinitionForm.httpNeedAuth">
+            <el-form-item label="认证接口URL">
+              <el-input v-model="taskDefinitionForm.authUrl" placeholder="请输入认证接口URL" />
+            </el-form-item>
+            <el-form-item label="认证参数(JSON)">
+              <el-input
+                v-model="taskDefinitionForm.authParams"
+                type="textarea"
+                :rows="3"
+                placeholder='例如: {"username":"demo","password":"123456"}'
+              />
+            </el-form-item>
+          </template>
+        </template>
+
         <el-form-item label="导出参数">
           <el-input
             v-model="taskDefinitionForm.params"
@@ -104,24 +163,38 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus } from '@element-plus/icons-vue'
-import { taskDefinitionApi } from '../services/api'
+import { ElMessage } from 'element-plus'
+import { taskDefinitionApi, dataSourceApi } from '../services/api'
 
 const router = useRouter()
 const taskDefinitions = ref([])
+const dataSources = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
-const taskDefinitionForm = ref({
+
+const buildDefaultForm = () => ({
   name: '',
   description: '',
   type: '导入',
   clientId: '',
   params: '{}',
   callbackUrl: '',
-  callbackMethod: 'POST'
+  callbackMethod: 'POST',
+  dataFetchType: 'sql',
+  dataSourceId: null,
+  querySql: '',
+  httpMethod: 'POST',
+  httpUrl: '',
+  httpNeedAuth: false,
+  authUrl: '',
+  authParams: '{}',
+  requestParams: '{}'
 })
+
+const taskDefinitionForm = ref(buildDefaultForm())
 
 const loadTaskDefinitions = async () => {
   try {
@@ -133,6 +206,14 @@ const loadTaskDefinitions = async () => {
   }
 }
 
+const loadDataSources = async () => {
+  try {
+    dataSources.value = await dataSourceApi.list()
+  } catch (error) {
+    console.error('加载数据源失败:', error)
+  }
+}
+
 const viewTaskDefinition = (taskDefinitionId) => {
   router.push(`/task-definition/${taskDefinitionId}`)
 }
@@ -140,7 +221,9 @@ const viewTaskDefinition = (taskDefinitionId) => {
 const editTaskDefinition = (taskDefinition) => {
   isEdit.value = true
   taskDefinitionForm.value = {
-    ...taskDefinition
+    ...buildDefaultForm(),
+    ...taskDefinition,
+    httpNeedAuth: Boolean(taskDefinition.httpNeedAuth)
   }
   dialogVisible.value = true
 }
@@ -158,15 +241,7 @@ const deleteTaskDefinition = async (taskDefinitionId) => {
 
 const createTaskDefinition = () => {
   isEdit.value = false
-  taskDefinitionForm.value = {
-    name: '',
-    description: '',
-    type: '导入',
-    clientId: '',
-    params: '{}',
-    callbackUrl: '',
-    callbackMethod: 'POST'
-  }
+  taskDefinitionForm.value = buildDefaultForm()
   dialogVisible.value = true
 }
 
@@ -199,6 +274,7 @@ const handleCurrentChange = (current) => {
 
 onMounted(() => {
   loadTaskDefinitions()
+  loadDataSources()
 })
 </script>
 

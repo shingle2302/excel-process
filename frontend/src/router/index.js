@@ -39,6 +39,11 @@ const routes = [
     component: () => import('../views/ClientList.vue')
   },
   {
+    path: '/data-sources',
+    name: 'dataSources',
+    component: () => import('../views/DataSourceList.vue')
+  },
+  {
     path: '/column-definitions',
     name: 'columnDefinitions',
     component: () => import('../views/ColumnDefinitionList.vue')
