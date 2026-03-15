@@ -1,20 +1,48 @@
 # Excel处理服务
 
-Excel处理服务是一个前后端分离的应用程序，提供Excel文件的导入/导出功能，支持任务管理和数据列定义管理。
+Excel处理服务是一个前后端分离的应用程序，提供Excel文件的导入/导出功能，支持任务管理、任务定义管理、客户端管理、数据源管理和数据列定义管理。
 
 ## 项目结构
 
 ```
-excel-process-service/
-├── backend/               # 后端代码
+excel-process/
+├── backend/               # 后端代码 (Spring Boot)
 │   ├── src/
 │   │   ├── main/
 │   │   └── test/
 │   ├── pom.xml
 │   └── 需求文档.md
-├── frontend/              # 前端代码
+├── frontend/              # 前端代码 (Vue 3)
 └── README.md              # 项目总体说明
 ```
+
+## 系统概述
+
+系统用于统一管理 **Excel 导入/导出任务**，支持：
+
+- 客户端接入与鉴权
+- 任务定义配置（导入/导出模板）
+- 任务创建、查询、状态跟踪
+- 数据源配置与连通性测试
+- 列定义映射（字段名、列名、类型、格式）
+- Excel 导入与导出执行
+- 首页运营总览看板
+
+## 用户角色
+
+- **平台管理员**：使用 Web 管理端维护客户端、任务定义、数据源、列定义，发起导入/导出任务
+- **外部系统**：通过 API 接口创建任务，通过 `clientId + clientSecret` 完成认证
+
+## 功能特性
+
+- **首页总览**：系统核心运营指标、任务健康度统计、快捷入口
+- **任务管理**：任务列表查询、状态筛选、详情查看、进度更新、任务删除
+- **任务定义管理**：导入/导出模板配置、数据获取方式（SQL/HTTP）、回调配置
+- **客户端管理**：客户端CRUD、启停状态切换、API密钥认证
+- **数据源管理**：数据源CRUD、连接配置、连通性测试
+- **数据列定义管理**：列映射配置（字段名、列名、类型、格式）
+- **Excel导入**：解析Excel/CSV文件，返回结构化JSON数据
+- **Excel导出**：查询数据并生成Excel文件下载
 
 ## 技术栈
 
@@ -75,17 +103,41 @@ excel-process-service/
    npm run build
    ```
 
-## 功能特性
+## 认证方式
 
-- **任务管理**：配置任务定义、创建任务、查看任务列表、查看任务详情、删除任务
-- **导入功能**：上传Excel文件、解析数据、处理数据、返回JSON格式数据
-- **导出功能**：查询数据、处理数据、生成Excel文件、返回文件
-- **数据列定义管理**：配置数据列定义、查看列表、创建、删除
-- **客户端管理**：客户端注册、认证、授权
+除登录接口、外部任务接口、健康检查接口外，其余接口均需认证。
+认证方式为请求头 `X-API-Key`，仅状态为"启用"的客户端允许访问。
+
+## 系统截图
+
+### 首页总览
+![首页-系统概览](docs/images/dashboard-overview.png)
+
+### 任务管理
+![任务管理](docs/images/task-management.png)
+
+### 任务定义管理
+![任务定义管理](docs/images/task-definition-create.png)
+
+### 客户端管理
+![客户端管理](docs/images/client-management.png)
+
+### 数据源管理
+![数据源管理](docs/images/data-source-edit.png)
+
+### 数据列定义管理
+![数据列定义管理](docs/images/column-definition-list.png)
+
+### Excel导入
+![Excel导入-上传前](docs/images/excel-import-empty.png)
+![Excel导入-成功](docs/images/excel-import-success.png)
+
+### Excel导出
+![Excel导出](docs/images/excel-export.png)
 
 ## API接口
 
-后端API接口请参考 `backend/README.md`
+后端API接口详细文档请参考 [backend/README.md](backend/README.md)
 
 ## 许可证
 
