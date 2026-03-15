@@ -1,10 +1,12 @@
 package com.excel.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.excel.entity.ColumnDefinition;
 import com.excel.service.ExcelService;
 import com.excel.service.StorageService;
 import com.excel.service.ColumnDefinitionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,6 +30,9 @@ public class ExcelController {
 
     @Autowired
     private ColumnDefinitionService columnDefinitionService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @PostMapping("/import")
     public Map<String, Object> importExcel(@RequestParam("file") MultipartFile file, 
@@ -79,8 +84,10 @@ public class ExcelController {
      * 解析数据
      */
     private List<Map<String, Object>> parseData(String dataJson) {
-        // 这里可以使用JSON库解析，例如Jackson
-        // 简化实现，实际项目中应该使用JSON库
-        return null;
+        try {
+            return objectMapper.readValue(dataJson, new TypeReference<List<Map<String, Object>>>() {});
+        } catch (IOException e) {
+            throw new RuntimeException("解析JSON数据失败: " + e.getMessage(), e);
+        }
     }
 }
