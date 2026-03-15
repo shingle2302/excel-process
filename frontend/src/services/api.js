@@ -63,6 +63,14 @@ export const clientApi = {
   updateStatus: (clientId, status) => api.put(`/clients/client-id/${clientId}/status`, null, { params: { status } })
 }
 
+export const dataSourceApi = {
+  create: (dataSource) => api.post('/data-sources', dataSource),
+  list: () => api.get('/data-sources'),
+  get: (id) => api.get(`/data-sources/${id}`),
+  update: (id, dataSource) => api.put(`/data-sources/${id}`, dataSource),
+  delete: (id) => api.delete(`/data-sources/${id}`)
+}
+
 export const columnDefinitionApi = {
   create: (columnDefinition) => api.post('/column-definitions', columnDefinition),
   list: () => api.get('/column-definitions'),

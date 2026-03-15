@@ -67,6 +67,13 @@ vi.mock('../services/api.js', () => ({
     getByClientId: vi.fn().mockResolvedValue({ id: 1, clientId: 'test-client' }),
     updateStatus: vi.fn().mockResolvedValue()
   },
+  dataSourceApi: {
+    create: vi.fn().mockResolvedValue({ id: 1, name: '主数据源' }),
+    list: vi.fn().mockResolvedValue([]),
+    get: vi.fn().mockResolvedValue({ id: 1, name: '主数据源' }),
+    update: vi.fn().mockResolvedValue(),
+    delete: vi.fn().mockResolvedValue()
+  },
   columnDefinitionApi: {
     create: vi.fn().mockResolvedValue({ id: 1, fieldName: 'test' }),
     list: vi.fn().mockResolvedValue([]),
