@@ -688,3 +688,46 @@ curl -X POST http://localhost:8080/api/excel/import \
 ## 许可证
 
 MIT License
+
+## 外部客户端直连创建任务
+
+- 接口：`POST /api/tasks/external`
+- 鉴权方式：请求体内传 `clientId` + `clientSecret`
+- 成功后返回客户端信息和任务信息。
+
+示例：
+
+```bash
+curl -X POST http://localhost:8080/api/tasks/external \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientId": "test-client",
+    "clientSecret": "test-secret",
+    "taskDefinitionId": 1,
+    "name": "external-task",
+    "type": "导出"
+  }'
+```
+
+## HTTP数据源测试服务（认证/不认证）
+
+为了验证 `http` 类型任务的数据来源配置，提供以下测试接口（均在当前服务中）：
+
+- 认证接口：`POST /api/mock-http-source/auth/login`
+- 免认证查询：`POST /api/mock-http-source/query/public`
+- 需认证查询：`POST /api/mock-http-source/query/secure`（需要 `Authorization: Bearer mock-token-123`）
+
+示例（认证后查询）：
+
+```bash
+# 1) 获取token
+curl -X POST http://localhost:8080/api/mock-http-source/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","password":"demo123"}'
+
+# 2) 带token查询
+curl -X POST http://localhost:8080/api/mock-http-source/query/secure \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer mock-token-123" \
+  -d '{"bizDate":"2026-03-15"}'
+```
