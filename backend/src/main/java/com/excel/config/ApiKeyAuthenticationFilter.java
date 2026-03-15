@@ -29,7 +29,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getRequestURI().startsWith("/api/auth/login")) {
+        if (request.getRequestURI().startsWith("/api/auth/login") || request.getRequestURI().startsWith("/api/tasks/external")) {
             filterChain.doFilter(request, response);
             return;
         }

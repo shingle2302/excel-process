@@ -1,5 +1,6 @@
 package com.excel.controller;
 
+import com.excel.dto.DataSourceConnectionTestResponse;
 import com.excel.entity.DataSourceConfig;
 import com.excel.service.DataSourceConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,12 @@ public class DataSourceConfigController {
 
     @Autowired
     private DataSourceConfigService dataSourceConfigService;
+
+    @PostMapping("/test-connection")
+    public DataSourceConnectionTestResponse testConnection(@RequestBody DataSourceConfig dataSourceConfig) {
+        dataSourceConfigService.validateConnection(dataSourceConfig);
+        return new DataSourceConnectionTestResponse(true, "数据源连通性测试成功");
+    }
 
     @PostMapping
     public DataSourceConfig createDataSource(@RequestBody DataSourceConfig dataSourceConfig) {

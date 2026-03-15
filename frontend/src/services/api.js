@@ -36,6 +36,7 @@ export const authApi = {
 
 export const taskApi = {
   create: (task) => api.post('/tasks', task),
+  externalCreate: (payload) => api.post('/tasks/external', payload),
   list: (status) => api.get('/tasks', { params: { status } }),
   get: (id) => api.get(`/tasks/${id}`),
   updateStatus: (id, status) => api.put(`/tasks/${id}/status`, null, { params: { status } }),
@@ -65,6 +66,7 @@ export const clientApi = {
 
 export const dataSourceApi = {
   create: (dataSource) => api.post('/data-sources', dataSource),
+  testConnection: (dataSource) => api.post('/data-sources/test-connection', dataSource),
   list: () => api.get('/data-sources'),
   get: (id) => api.get(`/data-sources/${id}`),
   update: (id, dataSource) => api.put(`/data-sources/${id}`, dataSource),

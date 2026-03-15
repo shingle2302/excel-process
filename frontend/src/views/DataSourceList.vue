@@ -54,6 +54,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button @click="testConnection">测试连通性</el-button>
           <el-button type="primary" @click="submitDataSourceForm">确定</el-button>
         </span>
       </template>
@@ -102,7 +103,23 @@ const editDataSource = (dataSource) => {
   dialogVisible.value = true
 }
 
+
+const testConnection = async () => {
+  try {
+    await dataSourceApi.testConnection(dataSourceForm.value)
+    ElMessage.success('连通性测试通过')
+    return true
+  } catch (error) {
+    console.error('连通性测试失败:', error)
+    ElMessage.error(error?.response?.data?.message || '连通性测试失败')
+    return false
+  }
+}
+
 const submitDataSourceForm = async () => {
+  const passed = await testConnection()
+  if (!passed) return
+
   try {
     if (isEdit.value) {
       await dataSourceApi.update(dataSourceForm.value.id, dataSourceForm.value)

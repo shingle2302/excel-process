@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -197,6 +198,46 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.records[0].id").value(100));
 
         verify(taskService, times(1)).queryTasks(any());
+    }
+
+    @Test
+    void testCreateExternalTask() throws Exception {
+        Task task = new Task();
+        task.setId(2L);
+        task.setName("外部任务");
+
+        TaskDefinition taskDefinition = new TaskDefinition();
+        taskDefinition.setId(1L);
+        taskDefinition.setClientId(1L);
+
+        var client = new com.excel.entity.Client();
+        client.setId(1L);
+        client.setClientId("test-client");
+        client.setClientName("测试客户端");
+
+        when(clientService.validateClient("test-client", "test-secret")).thenReturn(true);
+        when(clientService.getByClientId("test-client")).thenReturn(Optional.of(client));
+        when(taskDefinitionService.getById(1L)).thenReturn(taskDefinition);
+        when(taskService.createTask(any(Task.class))).thenReturn(task);
+
+        mockMvc.perform(post("/api/tasks/external")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "clientId": "test-client",
+                                  "clientSecret": "test-secret",
+                                  "taskDefinitionId": 1,
+                                  "name": "外部任务",
+                                  "type": "导出"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.clientId").value("test-client"))
+                .andExpect(jsonPath("$.clientName").value("测试客户端"))
+                .andExpect(jsonPath("$.task.id").value(2));
+
+        verify(clientService, times(1)).validateClient("test-client", "test-secret");
+        verify(taskService, times(1)).createTask(any(Task.class));
     }
 
 }
