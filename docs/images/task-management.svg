@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="任务管理-列表与筛选">
-  <rect width="1600" height="900" fill="#f5f8fc"/>
-  <rect x="40" y="40" width="1520" height="820" rx="12" fill="#ffffff" stroke="#2f69c9" stroke-width="3"/>
-  <text x="90" y="145" font-size="44" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" fill="#1f4c99" font-weight="700">Excel处理服务管理系统</text>
-  <text x="90" y="235" font-size="34" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" fill="#111111">功能示意图：任务管理-列表与筛选</text>
-  <text x="90" y="320" font-size="24" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" fill="#555555">该文件为 SVG 文本图片，用于避免 PR 二进制文件限制。</text>
-  <text x="90" y="370" font-size="24" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" fill="#555555">路径：docs/images/task-management.svg</text>
-</svg>
