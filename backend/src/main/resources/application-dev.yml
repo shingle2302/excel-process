@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
+    url: ${DB_URL:jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
     driver-class-name: org.h2.Driver
   h2:
     console:
@@ -18,19 +18,25 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 minio:
-  url: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
-  bucket-name: excel-process
+  url: ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket-name: ${MINIO_BUCKET_NAME:excel-process}
 
 jwt:
-  secret: excel-process-service-secret-key
-  expiration: 3600
+  secret: ${JWT_SECRET:excel-process-service-secret-key}
+  expiration: ${JWT_EXPIRATION:3600}
 
 task:
-  max-concurrent: 10
-  timeout: 1800
-  retry-count: 3
+  max-concurrent: ${TASK_MAX_CONCURRENT:10}
+  timeout: ${TASK_TIMEOUT:1800}
+  retry-count: ${TASK_RETRY_COUNT:3}
+
+security:
+  rbac:
+    admin-clients: ${RBAC_ADMIN_CLIENTS:admin-client}
+    operator-clients: ${RBAC_OPERATOR_CLIENTS:test-client}
+    viewer-clients: ${RBAC_VIEWER_CLIENTS:viewer-client}
