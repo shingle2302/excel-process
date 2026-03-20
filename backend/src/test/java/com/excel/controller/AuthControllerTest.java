@@ -2,6 +2,7 @@ package com.excel.controller;
 
 import com.excel.entity.Client;
 import com.excel.service.ClientService;
+import com.excel.service.UserAuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -25,6 +26,8 @@ class AuthControllerTest {
 
     @Mock
     private ClientService clientService;
+    @Mock
+    private UserAuthService userAuthService;
 
     @InjectMocks
     private AuthController authController;
@@ -54,5 +57,19 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.clientName").value("系统管理员"));
 
         verify(clientService, times(1)).validateClient("admin", "admin123");
+    }
+
+    @Test
+    void testUserLogin() throws Exception {
+        when(userAuthService.validateUser(anyString(), anyString())).thenReturn(true);
+
+        mockMvc.perform(post("/api/auth/user-login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"admin\",\"password\":\"admin123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.apiKey").value("admin"))
+                .andExpect(jsonPath("$.clientName").value("系统用户"));
+
+        verify(userAuthService, times(1)).validateUser("admin", "admin123");
     }
 }

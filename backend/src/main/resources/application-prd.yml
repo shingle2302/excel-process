@@ -52,8 +52,11 @@ client:
   rate-limit: ${CLIENT_RATE_LIMIT:100}
 
 security:
+  ui-login:
+    username: ${UI_LOGIN_USERNAME:admin}
+    password: ${UI_LOGIN_PASSWORD:admin123}
   rbac:
-    admin-clients: ${RBAC_ADMIN_CLIENTS:admin-client}
+    admin-clients: ${RBAC_ADMIN_CLIENTS:admin,admin-client}
     operator-clients: ${RBAC_OPERATOR_CLIENTS:test-client}
     viewer-clients: ${RBAC_VIEWER_CLIENTS:viewer-client}
 
