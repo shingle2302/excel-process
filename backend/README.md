@@ -138,6 +138,22 @@ java -jar target/excel-process-service-1.0.0.jar
 | task | 任务实例与执行状态 |
 | column_definition | 列映射定义 |
 
+
+## 商业化文档
+
+- 系统架构文档：`../docs/系统架构文档.md`
+- API文档说明：`../docs/API文档说明.md`
+- 部署文档：`../docs/部署文档.md`
+- 用户手册：`../docs/用户手册.md`
+- 管理员手册：`../docs/管理员手册.md`
+- 故障排查手册：`../docs/故障排查手册.md`
+- 开发指南：`../docs/开发指南.md`
+- API集成文档：`../docs/API集成文档.md`
+- SDK使用文档：`../docs/SDK使用文档.md`
+- 培训与支持：`../docs/培训与支持.md`
+- 运行后可访问 Swagger UI：`/swagger-ui/index.html`
+- OpenAPI JSON：`/v3/api-docs`
+
 ## 监控
 
 - 健康检查: GET /actuator/health
@@ -265,6 +281,22 @@ curl -X POST http://localhost:8080/api/excel/import \
   -F "file=@test.xlsx" \
   -F "columnDefinitions=[{\"fieldName\": \"id\", \"columnName\": \"ID\", \"columnType\": \"number\"}, {\"fieldName\": \"name\", \"columnName\": \"名称\", \"columnType\": \"string\"}]"
 ```
+
+
+## 商业化文档
+
+- 系统架构文档：`../docs/系统架构文档.md`
+- API文档说明：`../docs/API文档说明.md`
+- 部署文档：`../docs/部署文档.md`
+- 用户手册：`../docs/用户手册.md`
+- 管理员手册：`../docs/管理员手册.md`
+- 故障排查手册：`../docs/故障排查手册.md`
+- 开发指南：`../docs/开发指南.md`
+- API集成文档：`../docs/API集成文档.md`
+- SDK使用文档：`../docs/SDK使用文档.md`
+- 培训与支持：`../docs/培训与支持.md`
+- 运行后可访问 Swagger UI：`/swagger-ui/index.html`
+- OpenAPI JSON：`/v3/api-docs`
 
 ## 监控
 
@@ -404,6 +436,22 @@ curl -X POST http://localhost:8080/api/excel/import \
   -F "columnDefinitions=[{\"fieldName\": \"id\", \"columnName\": \"ID\", \"columnType\": \"number\"}, {\"fieldName\": \"name\", \"columnName\": \"名称\", \"columnType\": \"string\"}]"
 ```
 
+
+## 商业化文档
+
+- 系统架构文档：`../docs/系统架构文档.md`
+- API文档说明：`../docs/API文档说明.md`
+- 部署文档：`../docs/部署文档.md`
+- 用户手册：`../docs/用户手册.md`
+- 管理员手册：`../docs/管理员手册.md`
+- 故障排查手册：`../docs/故障排查手册.md`
+- 开发指南：`../docs/开发指南.md`
+- API集成文档：`../docs/API集成文档.md`
+- SDK使用文档：`../docs/SDK使用文档.md`
+- 培训与支持：`../docs/培训与支持.md`
+- 运行后可访问 Swagger UI：`/swagger-ui/index.html`
+- OpenAPI JSON：`/v3/api-docs`
+
 ## 监控
 
 - 健康检查：`GET /actuator/health`
@@ -460,3 +508,12 @@ curl -X POST http://localhost:8080/api/mock-http-source/query/secure \
   -H "Authorization: Bearer mock-token-123" \
   -d '{"bizDate":"2026-03-15"}'
 ```
+
+### 分析与扩展
+- `GET /api/analytics/status-distribution`：状态分布
+- `GET /api/analytics/task-trend?days=7`：趋势数据
+- `GET /api/analytics/report-summary`：汇总报表
+- `POST /api/tasks/{id}/process-async`：异步处理
+- `PUT /api/tasks/batch/status`：批量更新状态
+- `CRUD /api/templates`：模板系统
+- `GET /api/plugins`、`POST /api/plugins/process-task/{taskId}`：插件系统

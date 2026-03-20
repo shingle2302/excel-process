@@ -12,6 +12,16 @@ import java.util.stream.Collectors;
 @Service
 public class PermissionServiceImpl implements PermissionService {
 
+    private static final Set<String> OPERATOR_PERMISSIONS = Set.of(
+            "task:read", "task:write", "excel:process",
+            "task-definition:read", "task-definition:write",
+            "column-definition:read", "column-definition:write",
+            "datasource:read", "datasource:write",
+            "dashboard:read", "analytics:read",
+            "template:read", "template:write",
+            "plugin:read", "plugin:execute"
+    );
+
     private final Set<String> adminClients;
     private final Set<String> operatorClients;
     private final Set<String> viewerClients;
@@ -34,7 +44,7 @@ public class PermissionServiceImpl implements PermissionService {
             return true;
         }
         if (operatorClients.contains(clientId)) {
-            return "task:read".equals(permission) || "task:write".equals(permission) || "excel:process".equals(permission);
+            return OPERATOR_PERMISSIONS.contains(permission);
         }
         if (viewerClients.contains(clientId)) {
             return permission.endsWith(":read");

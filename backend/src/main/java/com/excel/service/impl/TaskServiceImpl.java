@@ -103,4 +103,14 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         Page<Task> result = baseMapper.selectPage(page, wrapper);
         return result.getRecords();
     }
+    @Override
+    public void batchUpdateStatus(List<Long> taskIds, String status) {
+        if (taskIds == null || taskIds.isEmpty()) {
+            return;
+        }
+        for (Long taskId : taskIds) {
+            updateTaskStatus(taskId, status);
+        }
+    }
+
 }

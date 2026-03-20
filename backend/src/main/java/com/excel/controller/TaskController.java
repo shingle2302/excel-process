@@ -2,6 +2,7 @@ package com.excel.controller;
 
 import com.excel.annotation.OperationLog;
 import com.excel.annotation.RequirePermission;
+import com.excel.dto.BatchTaskStatusUpdateRequest;
 import com.excel.dto.ExternalTaskCreateRequest;
 import com.excel.dto.ExternalTaskCreateResponse;
 import com.excel.dto.TaskPageResponse;
@@ -10,6 +11,7 @@ import com.excel.entity.Client;
 import com.excel.entity.Task;
 import com.excel.entity.TaskDefinition;
 import com.excel.exception.BusinessException;
+import com.excel.service.AsyncTaskProcessingService;
 import com.excel.service.ClientService;
 import com.excel.service.TaskDefinitionService;
 import com.excel.service.TaskService;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -33,6 +36,9 @@ public class TaskController {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private AsyncTaskProcessingService asyncTaskProcessingService;
 
     @PostMapping
     @RequirePermission("task:write")
@@ -144,11 +150,29 @@ public class TaskController {
         taskService.updateTaskStatus(id, status);
     }
 
+    @PutMapping("/batch/status")
+    @RequirePermission("task:write")
+    @OperationLog(type = "任务", value = "批量更新任务状态")
+    @Operation(summary = "批量更新任务状态")
+    public Map<String, Object> batchUpdateTaskStatus(@RequestBody BatchTaskStatusUpdateRequest request) {
+        taskService.batchUpdateStatus(request.getTaskIds(), request.getStatus());
+        return Map.of("updated", request.getTaskIds() == null ? 0 : request.getTaskIds().size(), "status", request.getStatus());
+    }
+
     @PutMapping("/{id}/progress")
     @RequirePermission("task:write")
     @OperationLog(type = "任务", value = "更新任务进度")
     public void updateTaskProgress(@PathVariable Long id, @RequestParam Integer progress) {
         taskService.updateTaskProgress(id, progress);
+    }
+
+    @PostMapping("/{id}/process-async")
+    @RequirePermission("task:write")
+    @OperationLog(type = "任务", value = "异步处理任务")
+    @Operation(summary = "异步处理任务")
+    public Map<String, Object> processTaskAsync(@PathVariable Long id) {
+        asyncTaskProcessingService.processTaskAsync(id);
+        return Map.of("taskId", id, "accepted", true, "message", "任务已提交异步执行");
     }
 
     @DeleteMapping("/{id}")
