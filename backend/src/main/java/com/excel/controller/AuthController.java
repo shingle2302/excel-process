@@ -2,9 +2,11 @@ package com.excel.controller;
 
 import com.excel.dto.LoginRequest;
 import com.excel.dto.LoginResponse;
+import com.excel.dto.UserLoginRequest;
 import com.excel.entity.Client;
 import com.excel.exception.BusinessException;
 import com.excel.service.ClientService;
+import com.excel.service.UserAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +23,25 @@ public class AuthController {
     @Autowired
     private ClientService clientService;
 
+    @Autowired
+    private UserAuthService userAuthService;
+
+    @PostMapping("/user-login")
+    @Operation(summary = "用户登录", description = "管理界面登录，使用 username/password 获取访问凭证")
+    public LoginResponse userLogin(@RequestBody UserLoginRequest request) {
+        boolean valid = userAuthService.validateUser(request.getUsername(), request.getPassword());
+        if (!valid) {
+            throw new BusinessException(401, "用户名或密码错误");
+        }
+        LoginResponse response = new LoginResponse();
+        response.setApiKey(request.getUsername());
+        response.setClientName("系统用户");
+        response.setExpiresIn(2 * 60 * 60);
+        return response;
+    }
+
     @PostMapping("/login")
-    @Operation(summary = "客户端登录", description = "使用 clientId/clientSecret 获取 API Key")
+    @Operation(summary = "客户端登录", description = "仅供 SDK/外部系统使用，使用 clientId/clientSecret 获取 API Key")
     public LoginResponse login(@RequestBody LoginRequest request) {
         boolean valid = clientService.validateClient(request.getClientId(), request.getClientSecret());
         if (!valid) {
