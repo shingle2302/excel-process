@@ -16,7 +16,7 @@
         </el-form-item>
         <el-button type="primary" :loading="loading" class="login-btn" @click="handleLogin">登录</el-button>
       </el-form>
-      <div class="login-tip">默认管理员：admin / admin123</div>
+      <div class="login-tip">默认管理员：admin / ChangeMe@123（请在生产环境通过环境变量覆盖）</div>
     </el-card>
   </div>
 </template>
@@ -35,7 +35,7 @@ const loading = ref(false)
 
 const form = ref({
   username: 'admin',
-  password: 'admin123'
+  password: 'ChangeMe@123'
 })
 
 const rules = {

@@ -1,6 +1,7 @@
 package com.excel.controller;
 
 import com.excel.entity.Client;
+import com.excel.entity.UserAccount;
 import com.excel.service.ClientService;
 import com.excel.service.UserAuthService;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,14 +62,18 @@ class AuthControllerTest {
 
     @Test
     void testUserLogin() throws Exception {
+        UserAccount user = new UserAccount();
+        user.setUsername("admin");
+        user.setDisplayName("系统管理员");
         when(userAuthService.validateUser(anyString(), anyString())).thenReturn(true);
+        when(userAuthService.getByUsername("admin")).thenReturn(Optional.of(user));
 
         mockMvc.perform(post("/api/auth/user-login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"admin\",\"password\":\"admin123\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.apiKey").value("admin"))
-                .andExpect(jsonPath("$.clientName").value("系统用户"));
+                .andExpect(jsonPath("$.clientName").value("系统管理员"));
 
         verify(userAuthService, times(1)).validateUser("admin", "admin123");
     }

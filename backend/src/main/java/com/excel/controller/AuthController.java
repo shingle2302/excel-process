@@ -4,6 +4,7 @@ import com.excel.dto.LoginRequest;
 import com.excel.dto.LoginResponse;
 import com.excel.dto.UserLoginRequest;
 import com.excel.entity.Client;
+import com.excel.entity.UserAccount;
 import com.excel.exception.BusinessException;
 import com.excel.service.ClientService;
 import com.excel.service.UserAuthService;
@@ -33,9 +34,11 @@ public class AuthController {
         if (!valid) {
             throw new BusinessException(401, "用户名或密码错误");
         }
+        UserAccount user = userAuthService.getByUsername(request.getUsername())
+                .orElseThrow(() -> new BusinessException(404, "用户不存在"));
         LoginResponse response = new LoginResponse();
-        response.setApiKey(request.getUsername());
-        response.setClientName("系统用户");
+        response.setApiKey(user.getUsername());
+        response.setClientName(user.getDisplayName());
         response.setExpiresIn(2 * 60 * 60);
         return response;
     }

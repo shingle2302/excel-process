@@ -76,7 +76,7 @@ npm run test:coverage
 
 ## 注意事项
 
-- 前端登录页使用用户账号密码（默认 `admin/admin123`），调用 `POST /api/auth/user-login`
+- 前端登录页使用用户账号密码（默认 `admin/ChangeMe@123`，建议生产环境通过环境变量覆盖引导管理员修改），调用 `POST /api/auth/user-login`
 - 登录成功后前端会自动保存返回的 `apiKey` 并在后续请求中通过 `X-API-Key` 传递
 - 前端通过代理配置将API请求转发到后端服务（默认端口8080）
 - 测试环境使用了模拟数据，不需要真实的后端服务

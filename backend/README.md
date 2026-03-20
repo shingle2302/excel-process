@@ -127,6 +127,7 @@ java -jar target/excel-process-service-1.0.0.jar
 
 除白名单接口外（登录、外部任务、健康检查），其他接口需在请求头添加 `X-API-Key` 认证。
 `X-API-Key` 可对应“启用状态客户端”或“有效管理界面用户”。
+管理界面管理员账户由系统在启动时自动引导创建，可通过环境变量 `UI_BOOTSTRAP_ADMIN_USERNAME`、`UI_BOOTSTRAP_ADMIN_PASSWORD`、`UI_BOOTSTRAP_ADMIN_DISPLAY_NAME` 配置。
 
 未授权访问统一返回 401。
 

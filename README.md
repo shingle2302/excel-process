@@ -112,6 +112,7 @@ excel-process/
 
 除白名单接口（登录接口、外部任务接口、健康检查接口）外，其余接口均需在请求头携带 `X-API-Key`。
 `X-API-Key` 可对应“启用的客户端”或“有效的管理界面用户”。
+管理界面初始化管理员可通过环境变量配置：`UI_BOOTSTRAP_ADMIN_USERNAME`、`UI_BOOTSTRAP_ADMIN_PASSWORD`、`UI_BOOTSTRAP_ADMIN_DISPLAY_NAME`。
 
 ## 系统截图
 

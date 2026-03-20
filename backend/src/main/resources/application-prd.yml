@@ -53,8 +53,10 @@ client:
 
 security:
   ui-login:
-    username: ${UI_LOGIN_USERNAME:admin}
-    password: ${UI_LOGIN_PASSWORD:admin123}
+    bootstrap-admin:
+      username: ${UI_BOOTSTRAP_ADMIN_USERNAME:admin}
+      password: ${UI_BOOTSTRAP_ADMIN_PASSWORD:ChangeMe@123}
+      display-name: ${UI_BOOTSTRAP_ADMIN_DISPLAY_NAME:系统管理员}
   rbac:
     admin-clients: ${RBAC_ADMIN_CLIENTS:admin,admin-client}
     operator-clients: ${RBAC_OPERATOR_CLIENTS:test-client}

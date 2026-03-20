@@ -26,7 +26,7 @@ describe('Login组件测试', () => {
   })
 
   it('should login successfully', async () => {
-    authApi.userLogin.mockResolvedValue({ apiKey: 'admin', clientName: '系统用户', expiresIn: 7200 })
+    authApi.userLogin.mockResolvedValue({ apiKey: 'admin', clientName: '系统管理员', expiresIn: 7200 })
     const wrapper = mount(Login)
 
     wrapper.vm.formRef = { validate: vi.fn().mockResolvedValue(true) }
