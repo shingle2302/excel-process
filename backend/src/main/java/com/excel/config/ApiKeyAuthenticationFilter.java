@@ -1,6 +1,7 @@
 package com.excel.config;
 
 import com.excel.service.ClientService;
+import com.excel.service.UserAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,17 +20,20 @@ import org.springframework.beans.factory.annotation.Value;
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     private final ClientService clientService;
+    private final UserAuthService userAuthService;
     private final String apiKeyHeader;
 
     @Autowired
-    public ApiKeyAuthenticationFilter(ClientService clientService, @Value("${api.key.header:X-API-Key}") String apiKeyHeader) {
+    public ApiKeyAuthenticationFilter(ClientService clientService, UserAuthService userAuthService, @Value("${api.key.header:X-API-Key}") String apiKeyHeader) {
         this.clientService = clientService;
+        this.userAuthService = userAuthService;
         this.apiKeyHeader = apiKeyHeader;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (request.getRequestURI().startsWith("/api/auth/login")
+                || request.getRequestURI().startsWith("/api/auth/user-login")
                 || request.getRequestURI().startsWith("/api/tasks/external")
                 || request.getRequestURI().startsWith("/api/mock-http-source/")) {
             filterChain.doFilter(request, response);
@@ -40,7 +44,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
         if (apiKey != null) {
             // 验证API Key
-            boolean valid = clientService.isActiveClient(apiKey);
+            boolean valid = clientService.isActiveClient(apiKey) || userAuthService.isActiveUser(apiKey);
             if (valid) {
                 // 创建认证对象
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(apiKey, null, null);

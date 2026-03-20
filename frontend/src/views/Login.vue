@@ -8,15 +8,15 @@
         </div>
       </template>
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-        <el-form-item label="账号" prop="clientId">
-          <el-input v-model="form.clientId" placeholder="请输入账号，如：admin" />
+        <el-form-item label="账号" prop="username">
+          <el-input v-model="form.username" placeholder="请输入账号，如：admin" />
         </el-form-item>
-        <el-form-item label="密码" prop="clientSecret">
-          <el-input v-model="form.clientSecret" type="password" show-password placeholder="请输入密码" @keyup.enter="handleLogin" />
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="form.password" type="password" show-password placeholder="请输入密码" @keyup.enter="handleLogin" />
         </el-form-item>
         <el-button type="primary" :loading="loading" class="login-btn" @click="handleLogin">登录</el-button>
       </el-form>
-      <div class="login-tip">默认管理员：admin / admin123</div>
+      <div class="login-tip">默认管理员：admin / ChangeMe@123（请在生产环境通过环境变量覆盖）</div>
     </el-card>
   </div>
 </template>
@@ -34,13 +34,13 @@ const formRef = ref()
 const loading = ref(false)
 
 const form = ref({
-  clientId: 'admin',
-  clientSecret: 'admin123'
+  username: 'admin',
+  password: 'ChangeMe@123'
 })
 
 const rules = {
-  clientId: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  clientSecret: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }
 
 const handleLogin = async () => {
@@ -49,7 +49,7 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
-    const result = await authApi.login(form.value)
+    const result = await authApi.userLogin(form.value)
     saveAuth({
       apiKey: result.apiKey,
       clientName: result.clientName,

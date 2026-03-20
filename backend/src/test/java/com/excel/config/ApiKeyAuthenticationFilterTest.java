@@ -1,6 +1,7 @@
 package com.excel.config;
 
 import com.excel.service.ClientService;
+import com.excel.service.UserAuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,6 +21,8 @@ class ApiKeyAuthenticationFilterTest {
 
     @Mock
     private ClientService clientService;
+    @Mock
+    private UserAuthService userAuthService;
 
     @Mock
     private FilterChain filterChain;
@@ -31,7 +34,7 @@ class ApiKeyAuthenticationFilterTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         // 手动注入apiKeyHeader参数
-        apiKeyAuthenticationFilter = new ApiKeyAuthenticationFilter(clientService, "X-API-Key");
+        apiKeyAuthenticationFilter = new ApiKeyAuthenticationFilter(clientService, userAuthService, "X-API-Key");
     }
 
     @Test
@@ -43,12 +46,14 @@ class ApiKeyAuthenticationFilterTest {
 
         // 模拟方法调用
         when(clientService.isActiveClient(anyString())).thenReturn(true);
+        when(userAuthService.isActiveUser(anyString())).thenReturn(false);
 
         // 执行测试
         apiKeyAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         // 验证结果
         verify(clientService, times(1)).isActiveClient(anyString());
+        verify(userAuthService, times(0)).isActiveUser(anyString());
         verify(filterChain, times(1)).doFilter(any(), any());
     }
 
@@ -61,12 +66,14 @@ class ApiKeyAuthenticationFilterTest {
 
         // 模拟方法调用
         when(clientService.isActiveClient(anyString())).thenReturn(false);
+        when(userAuthService.isActiveUser(anyString())).thenReturn(false);
 
         // 执行测试
         apiKeyAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         // 验证结果
         verify(clientService, times(1)).isActiveClient(anyString());
+        verify(userAuthService, times(1)).isActiveUser(anyString());
         verify(filterChain, times(0)).doFilter(any(), any());
         assertEquals(401, response.getStatus());
     }

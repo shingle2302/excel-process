@@ -36,6 +36,11 @@ task:
   retry-count: ${TASK_RETRY_COUNT:3}
 
 security:
+  ui-login:
+    bootstrap-admin:
+      username: ${UI_BOOTSTRAP_ADMIN_USERNAME:admin}
+      password: ${UI_BOOTSTRAP_ADMIN_PASSWORD:ChangeMe@123}
+      display-name: ${UI_BOOTSTRAP_ADMIN_DISPLAY_NAME:系统管理员}
   rbac:
     admin-clients: ${RBAC_ADMIN_CLIENTS:admin-client}
     operator-clients: ${RBAC_OPERATOR_CLIENTS:test-client}

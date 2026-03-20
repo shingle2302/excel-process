@@ -31,6 +31,7 @@ api.interceptors.response.use(
 )
 
 export const authApi = {
+  userLogin: (payload) => api.post('/auth/user-login', payload),
   login: (payload) => api.post('/auth/login', payload)
 }
 

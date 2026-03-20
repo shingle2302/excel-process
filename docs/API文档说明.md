@@ -10,8 +10,12 @@
 除白名单接口外，调用API需在Header中传入：
 
 ```http
-X-API-Key: <clientId>
+X-API-Key: <apiKey>
 ```
+
+其中：
+- 管理界面登录通过 `POST /api/auth/user-login`（`username/password`）获取 `apiKey`
+- SDK/外部系统登录通过 `POST /api/auth/login`（`clientId/clientSecret`）获取 `apiKey`
 
 ## 主要分组
 - 任务管理（/api/tasks）
