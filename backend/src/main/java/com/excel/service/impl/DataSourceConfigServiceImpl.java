@@ -2,6 +2,7 @@ package com.excel.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.excel.entity.DataSourceConfig;
+import com.excel.exception.BusinessException;
 import com.excel.mapper.DataSourceConfigMapper;
 import com.excel.service.DataSourceConfigService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -38,13 +39,13 @@ public class DataSourceConfigServiceImpl extends ServiceImpl<DataSourceConfigMap
             });
             String host = String.valueOf(config.getOrDefault("host", "")).trim();
             if (host.isEmpty()) {
-                throw new RuntimeException("连接配置缺少 host");
+                throw new BusinessException(400, "连接配置缺少 host");
             }
 
             Object portObj = config.get("port");
             int port;
             if (portObj == null) {
-                throw new RuntimeException("连接配置缺少 port");
+                throw new BusinessException(400, "连接配置缺少 port");
             }
             if (portObj instanceof Number number) {
                 port = number.intValue();
@@ -55,10 +56,10 @@ public class DataSourceConfigServiceImpl extends ServiceImpl<DataSourceConfigMap
             try (Socket socket = new Socket()) {
                 socket.connect(new InetSocketAddress(host, port), 3000);
             }
-        } catch (RuntimeException e) {
+        } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("数据源连通性测试失败: " + e.getMessage());
+            throw new BusinessException(400, "数据源连通性测试失败: " + e.getMessage());
         }
     }
 }

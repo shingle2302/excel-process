@@ -15,4 +15,5 @@ public interface TaskService extends IService<Task> {
     void updateTaskProgress(Long taskId, Integer progress);
     TaskPageResponse queryTasks(TaskQueryRequest request);
     List<Task> getRecentTasks(int limit);
+    void batchUpdateStatus(List<Long> taskIds, String status);
 }
