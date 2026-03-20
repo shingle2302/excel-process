@@ -42,6 +42,6 @@ security:
       password: ${UI_BOOTSTRAP_ADMIN_PASSWORD:ChangeMe@123}
       display-name: ${UI_BOOTSTRAP_ADMIN_DISPLAY_NAME:系统管理员}
   rbac:
-    admin-clients: ${RBAC_ADMIN_CLIENTS:admin-client}
+    admin-clients: ${RBAC_ADMIN_CLIENTS:admin,admin-client}
     operator-clients: ${RBAC_OPERATOR_CLIENTS:test-client}
     viewer-clients: ${RBAC_VIEWER_CLIENTS:viewer-client}
